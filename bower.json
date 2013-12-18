@@ -1,0 +1,9 @@
+{
+  "name": "ZeptoBuilder",
+  "devDependencies": {
+    "requirejs": "~2.1.9",
+    "base64": "~0.2.0",
+    "zepto": "~1.0.0",
+    "almond": "~0.2.7"
+  }
+}

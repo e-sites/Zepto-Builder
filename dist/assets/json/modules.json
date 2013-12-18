@@ -1,0 +1,71 @@
+{
+	"zepto.js": {
+		"description": "Core module; contains most methods",
+		"default": true
+	},
+	"event.js": {
+		"description": "Event handling via on() & off()",
+		"default": true
+	},
+	"ajax.js": {
+		"description": "XMLHttpRequest and JSONP functionality",
+		"default": true
+	},
+	"form.js": {
+		"description": "Serialize & submit web forms",
+		"default": true
+	},
+	"ie.js": {
+		"description": "Add support for Internet Explorer 10+ on desktop and Windows Phone 8",
+		"default": true
+	},
+	"detect.js": {
+		"description": "Provides $.os and $.browser information",
+		"default": false
+	},
+	"fx.js": {
+		"description": "The animate() method",
+		"default": false
+	},
+	"fx_methods.js": {
+		"description": "Animated show, hide, toggle, and fade*() methods.",
+		"default": false
+	},
+	"assets.js": {
+		"description": "Experimental support for cleaning up iOS memory after removing image elements from the DOM.",
+		"default": false
+	},
+	"data.js": {
+		"description": "A full-blown data() method, capable of storing arbitrary objects in memory.",
+		"default": false
+	},
+	"deferred.js": {
+		"description": "Provides $.Deferred promises API. Depends on the \"callbacks\" module. $.ajax() supports a promise interface for chaining callbacks.",
+		"default": false,
+		"depends": "callbacks.js"
+	},
+	"callbacks.js": {
+		"description": "Provides $.Callbacks for use in \"deferred\" module.",
+		"default": false
+	},
+	"selector.js": {
+		"description": "Experimental jQuery CSS extensions support for functionality such as $('div:first') and el.is(':visible').",
+		"default": false
+	},
+	"touch.js": {
+		"description": "Fires tap– and swipe–related events on touch devices. This works with both `touch` (iOS, Android) and `pointer` events (Windows Phone).",
+		"default": false
+	},
+	"gesture.js": {
+		"description": "Fires pinch gesture events on touch devices",
+		"default": false
+	},
+	"stack.js": {
+		"description": "Provides andSelf & end() chaining methods",
+		"default": false
+	},
+	"ios3.js": {
+		"description": "String.prototype.trim and Array.prototype.reduce methods (if they are missing) for compatibility with iOS 3.x.",
+		"default": false
+	}
+}	 
