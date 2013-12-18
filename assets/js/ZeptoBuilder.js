@@ -172,7 +172,6 @@ define([
 		 */
 		modules: {
 
-			selection: [],
 			metaData: {},
 
 			init: function() {
@@ -299,20 +298,14 @@ define([
 					return;
 				}
 
-				$generateBtn.removeAttr('disabled');
-
-				if ( !$checkbox[0].checked ) {
-					ZeptoBuilder.modules.selection.push( $checkbox[0].value );
-				} else {
-					ZeptoBuilder.modules.selection.splice( $.inArray($checkbox[0].value, ZeptoBuilder.modules.selection) );
-				}
-
-				if ( !ZeptoBuilder.modules.selection.length ) {
-					$generateBtn.attr('disabled', 'disabled');
-				}
-
 				$row.toggleClass('selected');
 				$checkbox.prop('checked', !$checkbox[0].checked);
+
+				if ( !$('.checkbox:checked').length ) {
+					$generateBtn.attr('disabled', 'disabled');
+				} else {
+					$generateBtn.removeAttr('disabled');
+				}
 			}
 		}
 	};
