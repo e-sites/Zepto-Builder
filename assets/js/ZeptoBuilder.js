@@ -259,6 +259,7 @@ define([
 						if ( self.metaData.hasOwnProperty(response.data[m].name) ) {
 							response.data[m].description = self.metaData[response.data[m].name].description;
 							response.data[m].checked = (self.metaData[response.data[m].name].default ? 'checked' : false);
+							response.data[m].selected = (self.metaData[response.data[m].name].default ? 'selected' : false);
 						}
 						modules += ZeptoBuilder.modules.parse(tpl, response.data[m]);
 					}

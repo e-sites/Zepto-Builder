@@ -48,7 +48,7 @@
 				<div class="topcoat-checkbox__checkmark"></div>
 				Uglify?
 			</label>
-			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" {{checked}} value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td>{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide">View source on GitHub</a></td></tr></script>
+			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item {{selected}}"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" {{checked}} value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td>{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide">View source on GitHub</a></td></tr></script>
 		</form>
 		<div class="modal" id="output">
 			<h2>Custom Zepto build</h2>
