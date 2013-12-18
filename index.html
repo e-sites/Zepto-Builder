@@ -23,11 +23,6 @@
 			Select the modules you would like to include in your own custom build. <br> This tool uses <a href="http://zeptojs.com/" target="_blank">Zepto <span id="v"></span></a>.
 		</p>
 		<form id="builder" method="POST" role="form">
-			<!-- <label class="topcoat-checkbox">
-				<input type="checkbox" id="all">
-				<div class="topcoat-checkbox__checkmark"></div>
-				Toggle all
-			</label> -->
 			<div class="topcoat-list">
 				<h2 class="topcoat-list__header">Modules</h2>
 				<div class="topcoat-list__container">
@@ -53,7 +48,7 @@
 				<div class="topcoat-checkbox__checkmark"></div>
 				Uglify?
 			</label>
-			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td>{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide">View source on GitHub</a></td></tr></script>
+			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" {{checked}} value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td>{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide">View source on GitHub</a></td></tr></script>
 		</form>
 		<div class="modal" id="output">
 			<h2>Custom Zepto build</h2>
@@ -69,7 +64,7 @@
 		</div>
 		<div class="overlay"></div>
 		<footer role="contentinfo">
-			A thing made by <a href="https://twitter.com/_boye">Boye</a> at <a href="http://e-sites.nl/">e-sites HQ</a>.
+			A thing made by <a href="https://twitter.com/_boye">Boye</a> at <a href="http://e-sites.nl/">e-sites HQ</a> and open-sourced at <a href="https://github.com/e-sites/Zepto-Builder">GitHub</a>.
 			<p>
 				<small>A special shout out to Thomas Fuchs, of Zepto fame.</small>
 			</p>
