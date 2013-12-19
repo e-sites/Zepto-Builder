@@ -7,24 +7,25 @@
 		<title>Zepto Builder - Generate a custom version of Zepto that just includes the modules you need</title>
 		<meta name="description" content="Zepto Builder will let you generate a custom version of Zepto that just includes the modules you need.">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/css/topcoat-mobile-light.min.css">
-		<!-- build:[href] assets/css/styles.min.css -->
+		<!-- build:css assets/css/styles.min.css -->
+		<link rel="stylesheet" href="assets/bower/topcoat/css/topcoat-mobile-light.css">
 		<link rel="stylesheet" href="assets/css/styles.css">
 		<!-- /build -->
-		<script>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-18924418-8'],['_setDomainName', '.e-sites.nl'],['_trackPageview'],['_trackPageLoadTime']);(function(b,c){var a=b.createElement(c),d=b.getElementsByTagName(c)[0];a.async=a.src='//www.google-analytics.com/ga.js';d.parentNode.insertBefore(a,d)})(document,'script');</script>
+		<script defer>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-18924418-8'],['_setDomainName', '.e-sites.nl'],['_trackPageview'],['_trackPageLoadTime']);(function(b,c){var a=b.createElement(c),d=b.getElementsByTagName(c)[0];a.async=a.src='//www.google-analytics.com/ga.js';d.parentNode.insertBefore(a,d)})(document,'script');</script>
 	</head>
 	<body>
 		<header class="topcoat-navigation-bar" role="banner">
 			<div class="topcoat-navigation-bar__item center full">
 				<h1 class="topcoat-navigation-bar__title">Zepto Builder</h1>
+				<span class="topcoat-navigation-bar__payoff">The web based equivalent of Zepto's <code>./make dist</code></span>
 			</div>
 		</header>
 		<p>
-			Select the modules you would like to include in your own custom build. <br> This tool uses <a href="http://zeptojs.com/" target="_blank">Zepto <span id="v"></span></a>.
+			Select the modules you would like to include in your own custom build.
 		</p>
 		<form id="builder" method="POST" role="form">
 			<div class="topcoat-list">
-				<h2 class="topcoat-list__header">Modules</h2>
+				<h2 class="topcoat-list__header"><a href="http://zeptojs.com/" target="_blank">Zepto <span id="v"></span></a></h2>
 				<div class="topcoat-list__container">
 					<table>
 						<thead>
@@ -60,7 +61,7 @@
 			<p>
 				Press <span id="copy-sign"></span>-C to copy, or:
 			</p>
-			<a href="" download="zepto.js" class="topcoat-button--cta" id="file">Save to disk</a>
+			<a href="" download="zepto.js" class="topcoat-button--cta" id="btn-save">Save to disk</a>
 		</div>
 		<div class="overlay"></div>
 		<footer role="contentinfo">
@@ -69,7 +70,7 @@
 				<small>A special shout out to Thomas Fuchs, of Zepto fame.</small>
 			</p>
 		</footer>
-		<!-- build:[src] assets/js/build.min.js -->
+		<!-- build:js assets/js/build.min.js -->
 		<script src="assets/bower/requirejs/require.js" data-main="assets/js/main"></script>
 		<!-- /build -->
 	</body>

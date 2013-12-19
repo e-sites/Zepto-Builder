@@ -1,16 +1,21 @@
 Zepto Builder
 ====
 <blockquote>
-	<p>Zepto Builder will let you generate a custom version of Zepto that just includes the modules you need.</p>
+	<p>Zepto Builder is the web based equivalent of the regular Zepto build process and will let you generate a custom version that just includes the modules you need.</p>
 </blockquote>
 
-The tool itself is located @ http://github.e-sites.nl/zeptobuilder/
+The service itself is located @ http://github.e-sites.nl/zeptobuilder/
+
+##Why this tool
+By default, Zepto provides a build tool, based on Node.js and Coffeescript. So, why this tool? Well, for starters because there are some folk that are simply not comfortable with a CLI.
+And even when you're a CLI guru this webbased tool might come in handy when for example Node.js insn't installed.
 
 ##Getting started
-After cloning (or downloading) the repo you must run <code>npm install</code> to fetch all dependencies, when this is done all Bower packages will automatically be downloaded and a browser build of Uglify will be created.
+After cloning (or downloading) the repo you must run <code>npm install</code> to fetch all dependencies, when this is done all Bower packages will automatically be downloaded and a browser build of Uglify will be created. Needless to say, for this to work you will need to have Node.js and Bower installed on your machine.
 
-##Grunt
+##Grunt task
 Grunt is used to created a distribution build. By running the default Grunt task it will optimize all resources and store them in the dist folder.
+The files located in this folder are prepared to be uploaded / deployed as is.
 
 ##Under the hood
 So, how does this tool actually work? Well, altough Zepto offers a CLI-based build tool I have decided to make it client-side only, based on <a href="https://github.com/gfranko/DownloadBuilder.js">DownloadBuilder</a>. The process from selecting the modules to actually generating the build (and minify it) is:

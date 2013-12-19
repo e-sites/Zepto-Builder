@@ -6,6 +6,7 @@ define([
 
 	'use strict';
 
+	// Cached Zepto sets
 	var $body = $('body'),
 		$source = $('#source'),
 		$modules = $('#modules'),
@@ -28,30 +29,33 @@ define([
 			} catch(e) {}
 		}()),
 
+		// Some static stuff
 		CONFIG = {
 			'location': 'github',
 			'author': 'madrobby',
 			'repo': 'zepto',
-			'branch': 'master',
-			'client_id': '44ea087258fd57a58a53',
-			'client_secret': '08e6bdee04caf16e0f4e6f9b4508adc43ac8a7cd'
+			'branch': 'master'
 		},
-		//DEFAULT_MODULES = ['zepto', 'event', 'ajax', 'form', 'ie'],
+		MODULE_METADATA_PATH = 'assets/json/modules.json',
 		API_URL = 'https://api.github.com',
 		REPO_PATH = '/repos/madrobby/zepto/contents',
 		SRC_PATH = '/src';
 
+	/**
+	 * Namespace that encapsulates all ZB related logic
+	 * 
+	 * @type {Object}
+	 */
 	var ZeptoBuilder = {
 
 		/**
-		 * Minify wrapper that leverages Uglify2
+		 * Minify wrapper that leverages Uglify
 		 * Based on https://gist.github.com/jpillora/5652641
 		 * 
 		 * @param  {String} codes
 		 * @param  {Object} options
 		 * @return {String} minified output
 		 * @private
-		 * 
 		 */
 		_minify: function (codes, options) {
 			/*jshint camelcase:false */
@@ -99,20 +103,24 @@ define([
 		},
 		
 		/**
-		 * Init method that kickstarts everything
+		 * Main init method that kickstarts everything
 		 * 
 		 * @return {[type]} [description]
 		 */
 		init: function () {
 			this.builder = new DownloadBuilder(CONFIG);
-			this.getVersion();
+			this.showVersion();
 			this.modules.init();
 			this.modal.init();
 
 			return this;
 		},
 
-		getVersion: function () {
+		/**
+		 * Fetches the current Zepto version, either from GitHub or from sessionStorage,
+		 * and updates the corresponding DOM element
+		 */
+		showVersion: function () {
 			var version;
 
 			if ( sessionStorage && sessionStorage.getItem('zepto-version') ) {
@@ -130,18 +138,42 @@ define([
 			});
 		},
 
+		/**
+		 * Simple tooltip functionality that shows the module description
+		 * when hovering the table rows
+		 * 
+		 * @type {Object}
+		 */
 		tooltip: {
+			
+			/**
+			 * Tooltip DOM element
+			 * 
+			 * @type {Object}
+			 */
 			$el: $('.tooltip'),
+
+			/**
+			 * Simple helper to show the actual tooltip
+			 */
 			show: function (e) {
 				ZeptoBuilder.tooltip.$el.html($(this).find('.hide').text()).removeClass('hide');
 				ZeptoBuilder.tooltip.move(e);
 			},
+
+			/**
+			 * Makes sure that the tooltip is positioned based on mouse movement
+			 */
 			move: function (e) {
 				ZeptoBuilder.tooltip.$el.css({
 					'top': (e.pageY - 50 - (ZeptoBuilder.tooltip.$el.height()/2) ) + 'px',
 					'left': (e.pageX + 10) + 'px'
 				});
 			},
+
+			/**
+			 * Simple helper to, guess what, hide the actual tooltip!
+			 */
 			hide: function () {
 				ZeptoBuilder.tooltip.$el.addClass('hide');
 			}
@@ -153,17 +185,28 @@ define([
 		 * @type {Object}
 		 */
 		modal: {
+
+			/**
+			 * Set the corresponding copy keyboard reference
+			 */
 			init: function () {
 				$('#copy-sign').html((navigator.platform.indexOf('Mac') !== -1 ? '⌘' : 'Ctrl'));
 			},
 
+			/**
+			 * Show modal dialog
+			 */
 			show: function () {
 				$body.addClass('move-from-top');
 			},
 
+			/**
+			 * Hide modal dialog
+			 */
 			hide: function () {
 				$body.removeClass('move-from-top');
 			}
+			
 		},
 
 		/**
@@ -172,14 +215,25 @@ define([
 		 */
 		modules: {
 
+			/**
+			 * Used to map module descriptions
+			 * 
+			 * @type {Object}
+			 */
 			metaData: {},
 
+			/**
+			 * Initializes module overview
+			 */
 			init: function() {
 				this.load();
 				this.loadMetaData();
 				this.observe();
 			},
 
+			/**
+			 * All necessary event listeners
+			 */
 			observe: function () {
 				$(document)
 					.on('keyup', function (e) {
@@ -188,7 +242,7 @@ define([
 						}
 					})
 					.on('click', '.overlay', ZeptoBuilder.modal.hide)
-					.on('submit', 'form', this.generate)
+					.on('submit', '#builder', this.generate)
 					.on('click', '#select-button', this.selectSource)
 					.on('click', '.topcoat-list__item', this.select)
 					.on('mouseenter', '.topcoat-list__item', ZeptoBuilder.tooltip.show)
@@ -196,15 +250,25 @@ define([
 					.on('mouseleave', '.topcoat-list__item', ZeptoBuilder.tooltip.hide);
 			},
 
+			/**
+			 * Simply fetches the corresponding module metadata, stored in a static JSON file.
+			 * Perhaps this should change in the future
+			 */
 			loadMetaData: function () {
 				var self = this;
-				$.get('assets/json/modules.json', function (response) {
+				$.get(MODULE_METADATA_PATH, function (response) {
 					self.metaData = response;
 				});
 			},
 
+			/**
+			 * Generates the actual Zepto build and shows the 
+			 * 
+			 * @param  {Object} e event object
+			 */
 			generate: function (e) {
-				var $checkboxes = $('.checkbox:checked');
+				var $checkboxes = $('.checkbox:checked'),
+					$saveBtn = $('#btn-save');
 
 				e.preventDefault();
 
@@ -222,13 +286,13 @@ define([
 
 						if ( $('#uglify')[0].checked ) {
 							minified = ZeptoBuilder._minify(data.content);
-							$('#file').hide();
+							$saveBtn.hide();
 							$('#saved').text('You saved: ' + ((1 - minified.length / input.length) * 100).toFixed(2) + '%');
 						} else {
-							$('#file').show();
+							$saveBtn.show();
 						}
 
-						$('#file').attr('href', data.url);
+						$saveBtn.attr('href', data.url);
 						$source.val(minified || input);
 
 						ZeptoBuilder.modal.show();
@@ -238,12 +302,18 @@ define([
 					});
 			},
 
+			/**
+			 * Cache the generated module HTML fragments
+			 */
 			cache: function (input) {
 				if ( sessionStorage ) {
 					sessionStorage.setItem('zepto-modules', input);
 				}
 			},
 
+			/**
+			 * Fetches the module contents, either from GitHub or from cache and injects it into the DOM
+			 */
 			load: function() {
 				var self = this;
 
@@ -265,7 +335,6 @@ define([
 					}
 
 					ZeptoBuilder.modules.cache(modules);
-
 					$modules.html(modules);
 				});
 			},
@@ -288,6 +357,7 @@ define([
 
 			/**
 			 * Selects the clicked row and corresponding checkbox
+			 * Also, disables the generate button when no modules are selected
 			 * 
 			 * @param  {Object} e event object
 			 */

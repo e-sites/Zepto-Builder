@@ -1,7 +1,7 @@
 {
   "name": "ZeptoBuilder",
   "description": "Zepto Builder will let you generate a custom version of Zepto that just includes the modules you need.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "http://github.e-sites.nl/ZeptoBuilder",
   "repository": {
     "type": "git",
@@ -21,7 +21,6 @@
   "devDependencies": {
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.7.0",
-    "grunt-contrib-cssmin": "~0.7.0",
     "grunt-contrib-uglify": "~0.1.1",
     "grunt-contrib-copy": "~0.4.1",
     "grunt-contrib-clean": "~0.5.0",
@@ -29,7 +28,9 @@
     "matchdep": "~0.3.0",
     "grunt-contrib-requirejs": "~0.4.1",
     "grunt-processhtml": "~0.2.6",
-    "grunt-banner": "~0.2.0"
+    "grunt-banner": "~0.2.0",
+    "grunt-uncss": "~0.1.5",
+    "grunt-contrib-concat": "~0.3.0"
   },
   "scripts": {
     "install": "./node_modules/grunt-contrib-uglify/node_modules/uglify-js/bin/uglifyjs --self > assets/js/uglify.min.js && bower i"

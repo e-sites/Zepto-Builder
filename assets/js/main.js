@@ -2,13 +2,12 @@
 
 	'use strict';
 
+	// Some minor config details
 	require.config({
 		paths: {
 			'uglify2': 'uglify2/lib/',
 			'base64': '../bower/base64/base64',
-			'zepto': '../bower/zepto/zepto',
 			'uglify': 'uglify.min',
-			'zeroclipboard': '../bower/zeroclipboard/zeroclipboard',
 			'almond': '../bower/almond/almond',
 		},
 		shim: {
@@ -17,9 +16,6 @@
 			},
 			'DownloadBuilder': {
 				exports: 'DownloadBuilder'
-			},
-			'zeroclipboard': {
-				exports: 'ZeroClipboard'
 			},
 			'uglify': {
 				exports: 'UglifyJS'
@@ -32,6 +28,7 @@
 		require(['base64']);
 	}
 
+	// Kickstart the app
 	require(['ZeptoBuilder']);
 
 }(window));

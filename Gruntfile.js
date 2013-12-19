@@ -77,15 +77,28 @@ module.exports = function(grunt) {
 			}
 		},
 
-		// Minfiy the distribution CSS.
-		cssmin: {
+		// Prepping the uncss task by concatenating both Topcoat CSS library and the custom styles
+		concat: {
+			release: {
+				src: ['assets/css/styles.css', 'assets/bower/topcoat/css/topcoat-mobile-light.css'],
+				dest: '<%= grunt.option("BUILD_DIR") %>/assets/css/styles.min.css'
+			}
+		},
+
+		// Remove unused CSS and minfiy the distribution file
+		uncss: {
 			release: {
 				files: {
-					'<%= grunt.option("BUILD_DIR") %>/assets/css/styles.min.css': ['assets/css/styles.css']
+					'<%= grunt.option("BUILD_DIR") %>/assets/css/styles.min.css': ['index.html']
+				},
+				options: {
+					compress: true,
+					ignore: ['.text-hide', '.gh', '.topcoat-list__item.selected td', '.move-from-top .modal', '.move-from-top .overlay']
 				}
 			}
 		},
 
+		// Update href/src references for distribtion build
 		processhtml: {
 			release: {
 				files: {
@@ -94,6 +107,7 @@ module.exports = function(grunt) {
 			}
 		},
 
+		// Minify index.html
 		htmlmin: {
 			release: {
 				options: {
@@ -121,6 +135,7 @@ module.exports = function(grunt) {
 			}
 		},
 
+		// Add a nice banner to the main JS file
 		usebanner: {
 			release: {
 				options: {
@@ -135,15 +150,15 @@ module.exports = function(grunt) {
 		}
 	});
 
-	// When running the default Grunt command, just lint the code.
 	grunt.registerTask('default', [
 		'clean',
 		'jshint',
 		'processhtml',
 		'copy',
+		'concat',
 		'htmlmin',
 		'requirejs',
-		'cssmin',
+		'uncss',
 		'usebanner'
 	]);
 };

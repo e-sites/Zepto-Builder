@@ -3,7 +3,7 @@
   "devDependencies": {
     "requirejs": "~2.1.9",
     "base64": "~0.2.0",
-    "zepto": "~1.0.0",
-    "almond": "~0.2.7"
+    "almond": "~0.2.7",
+    "topcoat": "~0.8.0"
   }
 }
