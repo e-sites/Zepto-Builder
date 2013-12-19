@@ -7,8 +7,7 @@ Zepto Builder
 The service itself is located @ http://github.e-sites.nl/zeptobuilder/
 
 ##Why this tool
-By default, Zepto provides a build tool, based on Node.js and Coffeescript. So, why this tool? Well, for starters because there are some folk that are simply not comfortable with a CLI.
-And even when you're a CLI guru this webbased tool might come in handy when for example Node.js insn't installed.
+By default, Zepto provides a build tool, based on Node.js and Coffeescript. So, why this tool? Well, for starters because there are some folk that are simply not comfortable with a CLI :).
 
 ##Getting started
 After cloning (or downloading) the repo you must run <code>npm install</code> to fetch all dependencies, when this is done all Bower packages will automatically be downloaded and a browser build of Uglify will be created. Needless to say, for this to work you will need to have Node.js and Bower installed on your machine.
