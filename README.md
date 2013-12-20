@@ -13,7 +13,7 @@ By default, Zepto provides a build tool, based on Node.js and Coffeescript. So, 
 After cloning (or downloading) the repo you must run <code>npm install</code> to fetch all dependencies, when this is done all Bower packages will automatically be downloaded and a browser build of Uglify will be created. Needless to say, for this to work you will need to have Node.js and Bower installed on your machine.
 
 ##Grunt task
-Grunt is used to created a distribution build. By running the default Grunt task it will optimize all resources and store them in the dist folder.
+Grunt is used to create a distribution build. By running the default Grunt task it will optimize all resources and store them in the dist folder.
 The files located in this folder are prepared to be uploaded / deployed as is.
 
 ##Under the hood
