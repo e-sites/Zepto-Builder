@@ -1,12 +1,11 @@
-/* DownloadBuilder.js - v0.6.0 - 2012-12-12
+/* DownloadBuilder.js - v0.7.0 - 2013-12-18
 * http://www.gregfranko.com/downloadBuilder.js/
 * Copyright (c) 2012 Greg Franko; Licensed MIT */
-
-// Immediately-Invoked Function Expression (IIFE) [Ben Alman Blog Post](http://benalman.com/news/2010/11/immediately-invoked-function-expression/) that calls another IIFE that contains all of the plugin logic.  I use this pattern so that anyone viewing this code does not have to scroll to the bottom of the page to view the local parameters that are passed into the main IIFE.
+/*jslint browser:true*/
 (function (downloadBuilder) {
 
     //ECMAScript 5 Strict Mode: [John Resig Blog Post](http://ejohn.org/blog/ecmascript-5-strict-mode-json-and-more/)
-    "use strict";
+    'use strict';
 
     // Calls the second IIFE and locally passes in the global window, and document objects
     downloadBuilder(window, document);
@@ -17,7 +16,7 @@
 (function (window, document, undefined) {
 
     // ECMAScript 5 Strict Mode: [John Resig Blog Post](http://ejohn.org/blog/ecmascript-5-strict-mode-json-and-more/)
-    "use strict";
+    'use strict';
 
     // Function object constructor
     var DownloadBuilder = function(obj) {
@@ -26,22 +25,25 @@
         this.options = {
 
             // Location option (Defaults to an local)
-            "location": (obj && obj.location) || "local",
+            'location': (obj && obj.location) || 'local',
 
             // Github author name option
-            "author": (obj && obj.author) || "",
+            'author': (obj && obj.author) || '',
 
             // Github repo name option
-            "repo": (obj && obj.repo) || "",
+            'repo': (obj && obj.repo) || '',
 
             // Github branch option
-            "branch": (obj && obj.branch) || "",
+            'branch': (obj && obj.branch) || '',
 
             // Github client id
-            "client_id": (obj && obj.client_id) || "",
+            'client_id': (obj && obj.client_id) || '',
 
             // Github client secret
-            "client_secret": (obj && obj.client_secret) || ""
+            'client_secret': (obj && obj.client_secret) || '',
+            
+            // Error handler (e.g. github rate limit exceeded)
+            'onError': (obj && obj.onError) || function(){}
 
         };
 
@@ -67,13 +69,13 @@
     DownloadBuilder.prototype = {
 
         // Library Version Number
-        VERSION: "0.6.0",
+        VERSION: '0.7.0',
 
         //Github Rate Limit URL
-        githubRateLimitUrl: "https://api.github.com/rate_limit",
+        githubRateLimitUrl: 'https://api.github.com/rate_limit',
 
         // String that will be used to hold the file content
-        file: "",
+        file: '',
 
         // Number of the current checkbox that is being traversed
         currentCheckbox: 0,
@@ -118,7 +120,7 @@
 
             window.URL = window.URL || window.webkitURL || window.mozURL;
 
-            window.storageInfo = window.storageInfo || window.webkitStorageInfo || window.mozStorageInfo;
+            window.storageInfo = window.storageInfo || navigator.webkitTemporaryStorage || window.mozStorageInfo;
 
             // If any of the global HTML5 Filesystem variables are not available
             if(!window.requestFileSystem || !window.Blob || !window.URL || !window.storageInfo) {
@@ -142,10 +144,10 @@
             var githubSelector = document.querySelectorAll('[data-location="github"]');
 
             // If there is one element or more that are trying to use Github resources
-            if(githubSelector.length || this.options.location === "github") {
+            if(githubSelector.length || this.options.location === 'github') {
 
                 // Returns an object
-                return { "isUsing": true, "length": githubSelector.length };
+                return { 'isUsing': true, 'length': githubSelector.length };
 
             }
 
@@ -153,7 +155,7 @@
             else {
 
                 // Returns an object
-                return { "isUsing": false, "length": githubSelector.length };
+                return { 'isUsing': false, 'length': githubSelector.length };
 
             }
 
@@ -168,8 +170,12 @@
             var self = this;
 
             // Calls the custom JSONP method (created by Oscar Goodson)
-            this.JSONP(this.githubRateLimitUrl + "?client_id=" + this.options.client_id + "&client_secret=" + this.options.client_secret, function(data){
+            this.JSONP(this.githubRateLimitUrl + '?client_id=' + this.options.client_id + '&client_secret=' + this.options.client_secret, function(data){
         
+                if(!data.data.rate){
+                    self.options.onError(data.data.message);
+                    return;
+                }
                 // Sets an instance variable that determines if the Github rate limit has been reached or not
                 self.rateLimit = data.data.rate.remaining;
 
@@ -186,9 +192,9 @@
         JSONP: function(url,method,callback) {
     
             // Set the defaults
-            url = url || "";
+            url = url || '';
     
-            method = method || "";
+            method = method || '';
   
             callback = callback || function(){};
 
@@ -198,17 +204,17 @@
             // If no method was set and they used the callback param in place of
             // the method param instead, we say method is callback and set a
             // default method of "callback"
-            if(typeof method === "function") {
+            if(typeof method === 'function') {
 
                 callback = method;
 
-                method = "callback";
+                method = 'callback';
     
             }
   
             // This randomizes a function *name* for generated script tag at the bottom to call
             // example: jsonp958653
-            generatedFunction = "jsonp" + Math.round(Math.random()*1000001);
+            generatedFunction = 'jsonp' + Math.round(Math.random()*1000001);
   
             // Generate the temp JSONP function using the name above
             // First, call the function the user defined in the callback param [callback(json)]
@@ -236,24 +242,24 @@
             // If in fact they did we add a & to add onto the params
             // example1: url = http://url.com THEN http://url.com?callback=X
             // example2: url = http://url.com?example=param THEN http://url.com?example=param&callback=X
-            if(url.indexOf("?") === -1) {
+            if(url.indexOf('?') === -1) {
 
-                url = url+"?";
+                url = url+'?';
 
             }
     
             else { 
 
-                url = url+"&";
+                url = url+'&';
 
             }
   
             // This generates the script tag
-            jsonpScript = document.createElement("script");
+            jsonpScript = document.createElement('script');
 
-            jsonpScript.setAttribute("src", url + method + "=" + generatedFunction);
+            jsonpScript.setAttribute('src', url + method + '=' + generatedFunction);
 
-            document.getElementsByTagName("head")[0].appendChild(jsonpScript);
+            document.getElementsByTagName('head')[0].appendChild(jsonpScript);
         },
 
         // buildURL
@@ -276,20 +282,19 @@
                     repoName,
                     repoBranch,
                     localPath,
-                    x,
                     lastElem;
 
                 // If the callback parameter is a function
-                if(typeof callback === "function") {
+                if(typeof callback === 'function') {
 
                     // Saves the callback function as an object instance property
                     self.callback = callback;
 
                 }
 
-                if(self.currentCheckbox === 0 && window.sessionStorage && !window.sessionStorage.getItem("cache-time")) {
+                if(self.currentCheckbox === 0 && window.sessionStorage && !window.sessionStorage.getItem('cache-time')) {
 
-                    window.sessionStorage.setItem("cache-time", time);
+                    window.sessionStorage.setItem('cache-time', time);
 
                 }
 
@@ -303,37 +308,37 @@
                 currentElem = checkboxes[self.currentCheckbox];
 
                 // Stores the HTML5 data attribute, data-location, inside of a variable (Defaulting to local)
-                location = currentElem.getAttribute("data-location") || self.options.location || "";
+                location = currentElem.getAttribute('data-location') || self.options.location || '';
 
                 // Stores the HTML5 data attribute, data-author, inside of a variable (Defaulting to an empty string)
-                repoAuthor = currentElem.getAttribute("data-author") || self.options.author || "";
+                repoAuthor = currentElem.getAttribute('data-author') || self.options.author || '';
 
                 // Stores the HTML5 data attribute, data-repo, inside of a variable (Defaulting to an empty string)
-                repoName = currentElem.getAttribute("data-repo") || self.options.repo || "";
+                repoName = currentElem.getAttribute('data-repo') || self.options.repo || '';
 
                 // Stores the HTML5 data attribute, data-branch, inside of a variable (Defaulting to an empty string)
-                repoBranch = currentElem.getAttribute("data-branch") || self.options.branch || "";
+                repoBranch = currentElem.getAttribute('data-branch') || self.options.branch || '';
 
                 // Stores the HTML5 data attribute, data-localpath, inside of a variable (Defaulting to an empty string)
-                localPath = currentElem.getAttribute("data-localpath") || "";
+                localPath = currentElem.getAttribute('data-localpath') || '';
 
                 // If the current browser supports Session Storage
                 if(window.sessionStorage) {
 
                     // If there are already items stored in the session
-                    if(window.sessionStorage.getItem(currentElem.value) && window.sessionStorage.getItem("cache-time")) {
+                    if(window.sessionStorage.getItem(currentElem.value) && window.sessionStorage.getItem('cache-time')) {
 
                          // If the caching time has expired
-                        if((time - window.sessionStorage.getItem("cache-time")) >= self.options.cache) {
+                        if((time - window.sessionStorage.getItem('cache-time')) >= self.options.cache) {
 
                             // Removes the session data
                             window.sessionStorage.removeItem(currentElem.value);
 
                             // Removes the session data
-                            window.sessionStorage.removeItem("cache-time");
+                            window.sessionStorage.removeItem('cache-time');
 
                             // Requests new data
-                            self._sendRequest({ "location": location, "repoAuthor": repoAuthor, "repoName": repoName, "repoBranch": repoBranch, "localPath": localPath, "currentElem": currentElem, "time": time, "lastElem": lastElem, "fileName": fileName, "lang": lang });
+                            self._sendRequest({ 'location': location, 'repoAuthor': repoAuthor, 'repoName': repoName, 'repoBranch': repoBranch, 'localPath': localPath, 'currentElem': currentElem, 'time': time, 'lastElem': lastElem, 'fileName': fileName, 'lang': lang });
 
                         }
 
@@ -344,7 +349,7 @@
                             self.file += window.sessionStorage.getItem(currentElem.value);
 
                             // Checks to the see if the file URL is ready to be created
-                            self._fileStatus({ "lastElem": lastElem, "lang": lang, "fileName": fileName });
+                            self._fileStatus({ 'lastElem': lastElem, 'lang': lang, 'fileName': fileName });
 
                         }
 
@@ -352,9 +357,8 @@
 
                     // If there are no items in the session
                     else {
-
                         // Requests new data
-                        self._sendRequest({ "location": location, "repoAuthor": repoAuthor, "repoName": repoName, "repoBranch": repoBranch, "localPath": localPath, "currentElem": currentElem, "time": time, "lastElem": lastElem, "fileName": fileName, "lang": lang });
+                        self._sendRequest({ 'location': location, 'repoAuthor': repoAuthor, 'repoName': repoName, 'repoBranch': repoBranch, 'localPath': localPath, 'currentElem': currentElem, 'time': time, 'lastElem': lastElem, 'fileName': fileName, 'lang': lang });
 
                     }
                     
@@ -365,7 +369,7 @@
             else {
 
                 // Calls the callback function that was ininitially passed into the buildURL method
-                callback.call(window, { "content": "", "fileName": fileName, "lang": lang });
+                callback.call(window, { 'content': '', 'fileName': fileName, 'lang': lang });
 
             }
 
@@ -391,16 +395,16 @@
                 xhr = new XMLHttpRequest();
 
                 // Creates a GET request with the relative url that is passed
-                xhr.open("GET", obj.url, true);
+                xhr.open('GET', obj.url, true);
 
                 // Ajax event handler to check if the request is finished
-                xhr.onreadystatechange = function(e) {
+                xhr.onreadystatechange = function() {
   
                     // If the Ajax request is complete and it is successful
                     if (this.readyState === 4 && this.status === 200) {
     
                         // Save the text response in a local variable
-                        text = this.responseText || this.response || "";
+                        text = this.responseText || this.response || '';
 
                         // If the file is empty
                         if(!self.file) {
@@ -413,7 +417,7 @@
                         else {
 
                             // Append a newline and a text response to the file instance property
-                            self.file += "\n" + text;
+                            self.file += '\n' + text;
 
                         }
 
@@ -421,7 +425,7 @@
                         window.sessionStorage.setItem(obj.elem.value, text || "");
 
                         // Checks to the see if the file URL should be created yet
-                        self._fileStatus({ "lastElem": obj.lastElem, "lang": obj.lang, "fileName": obj.fileName });
+                        self._fileStatus({ 'lastElem': obj.lastElem, 'lang': obj.lang, 'fileName': obj.fileName });
 
                     }
                 };
@@ -451,10 +455,10 @@
             this.JSONP(obj.url, function(data) {
         
                 // If the request is a Github request
-                if(obj.type === "github") {
+                if(obj.type === 'github') {
 
                     // Appends the parsed Github text response to the file instance property
-                    text = self._parseGithubResponse({ "elem": obj.elem, "data": data }) || "";
+                    text = self._parseGithubResponse({ 'elem': obj.elem, 'data': data }) || "";
 
                     // If the file is empty
                     if(!self.file) {
@@ -467,15 +471,15 @@
                     else {
 
                         // Append a newline and a text response to the file instance property
-                        self.file += "\n" + text;
+                        self.file += '\n' + text;
 
                     }
 
                     // Stores all the necessary data inside of the session
-                    window.sessionStorage.setItem(obj.elem.value, text || "");
+                    window.sessionStorage.setItem(obj.elem.value, text || '');
 
                     // Checks to the see if the file URL is ready to be created
-                    self._fileStatus({ "lastElem": obj.lastElem, "lang": obj.lang, "fileName": obj.fileName });
+                    self._fileStatus({ 'lastElem': obj.lastElem, 'lang': obj.lang, 'fileName': obj.fileName });
 
                 }
 
@@ -489,7 +493,7 @@
         _sendRequest: function(obj) {
 
             // If the request is a Github request
-            if(obj.location === "github") {
+            if(obj.location === 'github') {
 
                 // If the Github rate limit has not been met
                 if(this.rateLimit !== 0) {
@@ -498,10 +502,7 @@
                     this.rateLimit -= 1;
 
                     // Sends a third party file request
-                    this._thirdPartyRequest({
-                        "type": obj.location,
-                        "url": "https://api.github.com/repos/" + obj.repoAuthor + "/" + obj.repoName + "/contents/" + obj.currentElem.value + "?client_id=" + this.options.client_id + "&client_secret=" + this.options.client_secret,
-                        "elem": obj.currentElem, "time": obj.time, "lastElem": obj.lastElem, "lang": obj.lang, "fileName": obj.fileName });
+                    this._thirdPartyRequest({ 'type': obj.location, 'url': 'https://api.github.com/repos/' + obj.repoAuthor + "/" + obj.repoName + "/contents/" + obj.currentElem.value + "?ref=" + obj.repoBranch + "&client_id=" + this.options.client_id + "&client_secret=" + this.options.client_secret, "elem": obj.currentElem, "time": obj.time, "lastElem": obj.lastElem, "lang": obj.lang, "fileName": obj.fileName });
 
                 }
 
@@ -512,7 +513,7 @@
                     if(obj.localPath) {
 
                         // Sends a local file request
-                        this._localRequest({ "url": obj.localpath, "elem": obj.currentElem, "time": obj.time, "lastElem": obj.lastElem, "lang": obj.lang, "fileName": obj.fileName });
+                        this._localRequest({ 'url': obj.localpath, 'elem': obj.currentElem, 'time': obj.time, 'lastElem': obj.lastElem, 'lang': obj.lang, 'fileName': obj.fileName });
 
                     }
 
@@ -524,7 +525,7 @@
             else {
 
                 // Sends a local file request
-                this._localRequest({ "url": obj.currentElem.value, "elem": obj.currentElem, "time": obj.time, "lastElem": obj.lastElem, "lang": obj.lang, "fileName": obj.fileName });
+                this._localRequest({ 'url': obj.currentElem.value, 'elem': obj.currentElem, 'time': obj.time, 'lastElem': obj.lastElem, 'lang': obj.lang, 'fileName': obj.fileName });
                                 
             }
 
@@ -537,8 +538,7 @@
         _parseGithubResponse: function(obj) {
 
             // LOCAL VARIABLES
-            var self = this,
-                base64EncodedContent,
+            var base64EncodedContent,
                 content,
                 contentArray,
                 text;
@@ -547,13 +547,13 @@
             if (obj.data.data.content !== undefined && window.atob) {
 
                 // If the encoding is base64
-                if (obj.data.data.encoding === "base64") {
+                if (obj.data.data.encoding === 'base64') {
 
                     // Stores the content property inside of the local variable
                     base64EncodedContent = obj.data.data.content;
 
                     // Removes all new lines
-                    base64EncodedContent = base64EncodedContent.replace(/\n/g, "");
+                    base64EncodedContent = base64EncodedContent.replace(/\n/g, '');
     
                     // Stores the base64 encoded content inside of a local variable
                     content = window.atob(base64EncodedContent);
@@ -562,7 +562,7 @@
                     contentArray = content.split("\n");
 
                     // Grabs all of the content from the array and stores the text in a local variable
-                    text = contentArray.slice(0, contentArray.length).join("\n") || "";
+                    text = contentArray.slice(0, contentArray.length).join('\n') || '';
                     
                 }
 
@@ -583,7 +583,7 @@
                 blob;
  
             // Request temporary storage data (even though we are not creating any files this step is necessary)
-            window.storageInfo.requestQuota(window.TEMPORARY, 1024*1024, function(grantedBytes) {
+            window.storageInfo.requestQuota(1024*1024, function(grantedBytes) {
 
                 // The callback function that uses the granted bytes requested in the previous callback
                 window.requestFileSystem(self.storageType, grantedBytes, function(fs) {
@@ -592,10 +592,10 @@
                     fs.root.getFile(obj.fileName, { create: true }, function(fileEntry) {
 
                         // Create a FileWriter object for our FileEntry
-                        fileEntry.createWriter(function(fileWriter) {
+                        fileEntry.createWriter(function() {
 
                             // Create a new Blob
-                            blob = new window.Blob([obj.data], { type: "text/" + obj.lang });
+                            blob = new window.Blob([obj.data], { type: 'text/' + obj.lang });
 
                             // Calls the callback function that was passed in, and constructs then passes the url that references the recently created blob
                             obj.callback.call(window, window.URL.createObjectURL(blob));
@@ -619,8 +619,7 @@
         _fileStatus: function(obj) {
 
             // LOCAL VARIABLES
-            var self = this,
-                url;
+            var self = this;
 
             // If the last checkbox is being process
             if(obj.lastElem) {
@@ -632,16 +631,16 @@
                 if(self.supportsFilesystem) {
 
                     // Creates the file URL
-                    self.createURL({ "lang": obj.lang, "fileName": obj.fileName, "data": self.file, "callback": function(url) {
+                    self.createURL({ 'lang': obj.lang, 'fileName': obj.fileName, 'data': self.file, 'callback': function(url) {
 
                         // Saves the url inside of the session
-                        window.sessionStorage.setItem("bloburl", url);
+                        window.sessionStorage.setItem('bloburl', url);
 
                         // Calls the callback function that was ininitially passed into the buildURL method
-                        self.callback.call(window, { "url": url, "content": self.file, "fileName": obj.fileName, "lang": obj.lang });
+                        self.callback.call(window, { 'url': url, 'content': self.file, 'fileName': obj.fileName, 'lang': obj.lang });
 
                         // Removes the contents of the file instance property (that was used to create the file URL)
-                        self.file = "";
+                        self.file = '';
 
                     }});
                                     
@@ -651,10 +650,10 @@
                 else {
 
                     // Calls the callback function that was ininitially passed into the buildURL method
-                    self.callback.call(window, { "content": self.file, "fileName": obj.fileName, "lang": obj.lang });
+                    self.callback.call(window, { 'content': self.file, 'fileName': obj.fileName, 'lang': obj.lang });
 
                     // Removes the contents of the file instance property (that was used to create the file URL)
-                    self.file = "";
+                    self.file = '';
 
                 }
 

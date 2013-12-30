@@ -6,14 +6,14 @@ Zepto Builder
 
 The service itself is located @ http://github.e-sites.nl/zeptobuilder/
 
-##Why this tool
+##Why this tool?
 By default, Zepto provides a build tool, based on Node.js and Coffeescript. So, why this tool? Well, for starters because there are some folk that are simply not comfortable with a CLI :).
 
 ##Getting started
 After cloning (or downloading) the repo you must run <code>npm install</code> to fetch all dependencies, when this is done all Bower packages will automatically be downloaded and a browser build of Uglify will be created. Needless to say, for this to work you will need to have Node.js and Bower installed on your machine.
 
 ##Grunt task
-Grunt is used to create a distribution build. By running the default Grunt task it will optimize all resources and store them in the dist folder.
+Grunt is used to create a distribution build. By running the default Grunt task it will optimize all resources and store them in the <code>dist</code> folder.
 The files located in this folder are prepared to be uploaded / deployed as is.
 
 ##Under the hood
@@ -29,12 +29,12 @@ So, how does this tool actually work? Well, altough Zepto offers a CLI-based bui
 First and foremost, of course, Thomas Fuchs of Zepto fame (and all it's contributors). Also, Mihai Bazon, the creator of Uglify, and Greg Franko the author of DownloadBuilder.
 
 ##Browser support
-Tested in the latest (stable) version of Google Chrome, Mozilla Firefox, Opera and Safari. As for Internet Explorer; I haven't been able to test properly...but I am guessing IE>9.
+Tested in the latest (stable) versions of Google Chrome, Mozilla Firefox, Opera and Safari. As for Internet Explorer; I have tested it in IE9 and up (since 0.4.0).
 
 ##Road map
 <ul>
-	<li>Improve browser support</li>
-	<li>Offer 'save to disk' option for minified builds as well</li>
+	<li><del>Improve browser support</del> <ins>As from 0.4.0, IE9 is supported as well</li>
+	<li><del>Offer 'save to disk' option for minified builds as well</del> <ins>This feature landed in 0.4.0</ins></li>
 	<li>File size totals when selecting modules</li>
 	<li>Complement docs and inline comments</li>
 	<li>Unit testing</li>

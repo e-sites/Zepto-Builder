@@ -1,16 +1,20 @@
 define([
 	'zepto',
 	'DownloadBuilder',
-	'uglify'
-], function($, DownloadBuilder, UglifyJS) {
+	'uglify',
+	'keymaster',
+	'spin'
+], function(Zepto, DownloadBuilder, UglifyJS, key, Spinner) {
 
 	'use strict';
 
 	// Cached Zepto sets
-	var $body = $('body'),
+	var $ = (window.jQuery ? jQuery : Zepto),
+		$body = $('body'),
 		$source = $('#source'),
 		$modules = $('#modules'),
 		$generateBtn = $('#btn-generate'),
+		$saveBtn = $('#btn-save'),
 
 		// Feature detect + local reference
 		// Courtesy of Mathias Bynens
@@ -29,17 +33,61 @@ define([
 			} catch(e) {}
 		}()),
 
+		// Loading indicator
+		spinner = new Spinner({
+			lines: 15,
+			length: 3,
+			width: 2,
+			radius: 9,
+			corners: 1,
+			rotate: 0,
+			direction: 1,
+			color: '#4CA1E4',
+			speed: 1,
+			trail: 60,
+			shadow: false,
+			hwaccel: true,
+			className: 'spinner',
+			zIndex: 2e9,
+			top: '-28px',
+			left: '110px'
+		}),
+
 		// Some static stuff
+		/*jshint camelcase:false */
 		CONFIG = {
 			'location': 'github',
 			'author': 'madrobby',
 			'repo': 'zepto',
-			'branch': 'master'
+			'branch': 'master',
+			'client_id': '',
+			'client_secret': ''
 		},
+		FILE_NAME = 'zepto.js',
+		MIN_FILE_NAME = FILE_NAME.replace('.', '.min.'),
 		MODULE_METADATA_PATH = 'assets/json/modules.json',
 		API_URL = 'https://api.github.com',
 		REPO_PATH = '/repos/madrobby/zepto/contents',
-		SRC_PATH = '/src';
+		SRC_PATH = '/src',
+		AUTH_QRYSTR = (CONFIG.client_id ? '?client_id=' + CONFIG.client_id + '&client_secret=' + CONFIG.client_secret : '');
+
+	/**
+	 * Small bytesToSize helper (courtesy of Stephen Cronin)
+	 * @see http://scratch99.com/web-development/javascript/convert-bytes-to-mb-kb/
+	 * @param  {Number} bytes
+	 * @return {Number}
+	 * @private
+	 */
+	function _bytesToSize(bytes) {
+		var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'],
+			i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+
+		if ( i === 0 ) {
+			return bytes + ' ' + sizes[i];
+		}
+
+		return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+	}
 
 	/**
 	 * Namespace that encapsulates all ZB related logic
@@ -113,6 +161,11 @@ define([
 			this.modules.init();
 			this.modal.init();
 
+			// Keyboard shortcuts
+			key('⌘+a, ctrl+a', this.modules.toggleAll);
+			key('⌘+shift+a, ctrl+shift+a', this.modules.toggleAll);
+			key('esc', this.modal.hide);
+
 			return this;
 		},
 
@@ -127,7 +180,7 @@ define([
 				return $('#v').text(sessionStorage.getItem('zepto-version'));
 			}
 
-			this.builder.JSONP(API_URL + REPO_PATH + '/package.json', function (data) {
+			this.builder.JSONP(API_URL + REPO_PATH + '/package.json' + AUTH_QRYSTR, function (data) {
 				version = JSON.parse(ZeptoBuilder.builder._parseGithubResponse({'data': data})).version;
 
 				if ( sessionStorage ) {
@@ -236,14 +289,8 @@ define([
 			 */
 			observe: function () {
 				$(document)
-					.on('keyup', function (e) {
-						if ( e.keyCode === 27 ) {
-							ZeptoBuilder.modal.hide();
-						}
-					})
 					.on('click', '.overlay', ZeptoBuilder.modal.hide)
 					.on('submit', '#builder', this.generate)
-					.on('click', '#select-button', this.selectSource)
 					.on('click', '.topcoat-list__item', this.select)
 					.on('mouseenter', '.topcoat-list__item', ZeptoBuilder.tooltip.show)
 					.on('mousemove', '.topcoat-list__item', ZeptoBuilder.tooltip.move)
@@ -257,6 +304,7 @@ define([
 			loadMetaData: function () {
 				var self = this;
 				$.get(MODULE_METADATA_PATH, function (response) {
+					ZeptoBuilder.modules.length = Object.keys(response).length;
 					self.metaData = response;
 				});
 			},
@@ -267,8 +315,7 @@ define([
 			 * @param  {Object} e event object
 			 */
 			generate: function (e) {
-				var $checkboxes = $('.checkbox:checked'),
-					$saveBtn = $('#btn-save');
+				var $checkboxes = $('.checkbox:checked');
 
 				e.preventDefault();
 
@@ -276,30 +323,69 @@ define([
 					return;
 				}
 
+				$generateBtn.attr('disabled', 'disabled');
+				spinner.spin($('#spin')[0]);
+
 				ZeptoBuilder.builder.buildURL(
 					$checkboxes,
-					'zepto.js',
+					FILE_NAME,
 					'javascript',
 					function (data) {
-						var input = data.content,
+						var output = data.content,
 							minified;
 
 						if ( $('#uglify')[0].checked ) {
 							minified = ZeptoBuilder._minify(data.content);
-							$saveBtn.hide();
-							$('#saved').text('You saved: ' + ((1 - minified.length / input.length) * 100).toFixed(2) + '%');
-						} else {
-							$saveBtn.show();
+							
+							$('#saved').text('You saved: ' + ((1 - minified.length / output.length) * 100).toFixed(2) + '%');
+
+							if ( ZeptoBuilder.builder.supportsFilesystem ) {
+								ZeptoBuilder.builder.createURL({
+									data: minified,
+									lang: 'javascript',
+									fileName: MIN_FILE_NAME,
+									callback: function (url) {
+										ZeptoBuilder.modules.handleOutput(MIN_FILE_NAME, url, minified);
+									}
+								});
+							} else {
+								ZeptoBuilder.modules.handleOutput(null, null, minified);
+							}
+
+							return;
 						}
 
-						$saveBtn.attr('href', data.url);
-						$source.val(minified || input);
+						ZeptoBuilder.modules.handleOutput(FILE_NAME, data.url, output);
 
-						ZeptoBuilder.modal.show();
-
-						$source.focus();
-						$source[0].select();
+						data = null;
 					});
+			},
+
+			/**
+			 * Handles the last step in the generate process
+			 * 
+			 * @param  {String} fileName
+			 * @param  {String} url
+			 * @param  {String} output
+			 */
+			handleOutput: function (fileName, url, output) {
+				if ( ZeptoBuilder.builder.supportsFilesystem ) {
+					$saveBtn
+						.attr({
+							'download': fileName,
+							'href': url
+						})
+						.css('display', 'inline-block');
+				}
+
+				ZeptoBuilder.modal.show();
+				spinner.stop();
+
+				$generateBtn.removeAttr('disabled');
+				$source.val(output).trigger('focus');
+				$source[0].select();
+
+				output = null;
 			},
 
 			/**
@@ -321,7 +407,7 @@ define([
 					return $modules.html(sessionStorage.getItem('zepto-modules'));
 				}
 
-				ZeptoBuilder.builder.JSONP(API_URL + REPO_PATH + SRC_PATH, function (response) {
+				ZeptoBuilder.builder.JSONP(API_URL + REPO_PATH + SRC_PATH + AUTH_QRYSTR, function (response) {
 					var tpl = $('#module-tpl').html(),
 						modules = '';
 
@@ -331,11 +417,12 @@ define([
 							response.data[m].checked = (self.metaData[response.data[m].name].default ? 'checked' : false);
 							response.data[m].selected = (self.metaData[response.data[m].name].default ? 'selected' : false);
 						}
+						response.data[m].size = _bytesToSize(response.data[m].size);
 						modules += ZeptoBuilder.modules.parse(tpl, response.data[m]);
 					}
 
-					ZeptoBuilder.modules.cache(modules);
 					$modules.html(modules);
+					ZeptoBuilder.modules.cache(modules);
 				});
 			},
 
@@ -365,11 +452,12 @@ define([
 				var $row = $(e.target).parents('tr'),
 					$checkbox = $row.find('.checkbox');
 
+				$row.toggleClass('selected');
+
 				if ( e.target.nodeName === 'INPUT' ) {
 					return;
 				}
 
-				$row.toggleClass('selected');
 				$checkbox.prop('checked', !$checkbox[0].checked);
 
 				if ( !$('.checkbox:checked').length ) {
@@ -377,6 +465,23 @@ define([
 				} else {
 					$generateBtn.removeAttr('disabled');
 				}
+			},
+
+			/**
+			 * Toggles all checkboxes at once
+			 */
+			toggleAll: function (e) {
+				var rows = 'tr:not(.selected)';
+
+				if ( $modules.find('.checkbox:checked').length === ZeptoBuilder.modules.length ) {
+					rows = 'tr';
+				}
+
+				$modules.find(rows).each(function () {
+					$(this).find('.checkbox').trigger('click');
+				});
+
+				e.preventDefault();
 			}
 		}
 	};

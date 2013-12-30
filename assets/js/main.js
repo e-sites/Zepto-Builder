@@ -9,16 +9,21 @@
 			'base64': '../bower/base64/base64',
 			'uglify': 'uglify.min',
 			'almond': '../bower/almond/almond',
+			'keymaster': '../bower/keymaster/keymaster',
+			'spin': '../bower/spin.js/spin'
 		},
 		shim: {
 			'zepto': {
-				exports: '$'
+				exports: 'Zepto'
 			},
 			'DownloadBuilder': {
 				exports: 'DownloadBuilder'
 			},
 			'uglify': {
 				exports: 'UglifyJS'
+			},
+			'keymaster': {
+				exports: 'key'
 			}
 		}
 	});
