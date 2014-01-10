@@ -94,7 +94,7 @@ define([
 	 * 
 	 * @type {Object}
 	 */
-	var ZeptoBuilder = {
+	var ZB = {
 
 		/**
 		 * Minify wrapper that leverages Uglify
@@ -174,21 +174,54 @@ define([
 		 * and updates the corresponding DOM element
 		 */
 		showVersion: function () {
-			var version;
+			var cacheKey = 'zb-zepto-version',
+				version;
 
-			if ( sessionStorage && sessionStorage.getItem('zepto-version') ) {
-				return $('#v').text(sessionStorage.getItem('zepto-version'));
+			if ( this.cache.get(cacheKey) ) {
+				return $('#v').text(this.cache.get(cacheKey));
 			}
 
 			this.builder.JSONP(API_URL + REPO_PATH + '/package.json' + AUTH_QRYSTR, function (data) {
-				version = JSON.parse(ZeptoBuilder.builder._parseGithubResponse({'data': data})).version;
+				version = JSON.parse(ZB.builder._parseGithubResponse({'data': data})).version;
 
-				if ( sessionStorage ) {
-					sessionStorage.setItem('zepto-version', version);
-				}
+				ZB.cache.set(cacheKey, version);
 
 				$('#v').text(version);
 			});
+		},
+
+		/**
+		 * Small wrapper around sessionStorage caching
+		 *
+		 * @type {Object}
+		 */
+		cache: {
+
+			/**
+			 * Write to cache (and format objects if necessary)
+			 * 
+			 * @param {String}        key
+			 * @param {String|Object} value
+			 */
+			set: function (key, value) {
+				if ( sessionStorage ) {
+					if ( $.isPlainObject(value) ) {
+						value = JSON.stringify(value);
+					}
+					sessionStorage.setItem(key, value);
+				}
+			},
+
+			/**
+			 * Fetch items from cache
+			 * 
+			 * @param  {String} key
+			 * @return {String}
+			 */
+			get: function (key) {
+				return sessionStorage && sessionStorage.getItem(key);
+			}
+
 		},
 
 		/**
@@ -198,7 +231,7 @@ define([
 		 * @type {Object}
 		 */
 		tooltip: {
-			
+
 			/**
 			 * Tooltip DOM element
 			 * 
@@ -210,16 +243,16 @@ define([
 			 * Simple helper to show the actual tooltip
 			 */
 			show: function (e) {
-				ZeptoBuilder.tooltip.$el.html($(this).find('.hide').text()).removeClass('hide');
-				ZeptoBuilder.tooltip.move(e);
+				ZB.tooltip.$el.html($(this).find('.hide').text()).removeClass('hide');
+				ZB.tooltip.move(e);
 			},
 
 			/**
 			 * Makes sure that the tooltip is positioned based on mouse movement
 			 */
 			move: function (e) {
-				ZeptoBuilder.tooltip.$el.css({
-					'top': (e.pageY - 50 - (ZeptoBuilder.tooltip.$el.height()/2) ) + 'px',
+				ZB.tooltip.$el.css({
+					'top': (e.pageY - 50 - (ZB.tooltip.$el.height()/2) ) + 'px',
 					'left': (e.pageX + 10) + 'px'
 				});
 			},
@@ -228,8 +261,9 @@ define([
 			 * Simple helper to, guess what, hide the actual tooltip!
 			 */
 			hide: function () {
-				ZeptoBuilder.tooltip.$el.addClass('hide');
+				ZB.tooltip.$el.addClass('hide');
 			}
+
 		},
 
 		/**
@@ -289,12 +323,12 @@ define([
 			 */
 			observe: function () {
 				$(document)
-					.on('click', '.overlay', ZeptoBuilder.modal.hide)
+					.on('click', '.overlay', ZB.modal.hide)
 					.on('submit', '#builder', this.generate)
-					.on('click', '.topcoat-list__item', this.select)
-					.on('mouseenter', '.topcoat-list__item', ZeptoBuilder.tooltip.show)
-					.on('mousemove', '.topcoat-list__item', ZeptoBuilder.tooltip.move)
-					.on('mouseleave', '.topcoat-list__item', ZeptoBuilder.tooltip.hide);
+					.on('click', '.topcoat-list__item:not(.disabled)', this.select)
+					.on('mouseenter', '.topcoat-list__item', ZB.tooltip.show)
+					.on('mousemove', '.topcoat-list__item', ZB.tooltip.move)
+					.on('mouseleave', '.topcoat-list__item', ZB.tooltip.hide);
 			},
 
 			/**
@@ -302,10 +336,17 @@ define([
 			 * Perhaps this should change in the future
 			 */
 			loadMetaData: function () {
-				var self = this;
+				var cacheKey = 'zb-modules-metadata';
+
+				if ( ZB.cache.get(cacheKey) ) {
+					ZB.metaData = JSON.parse(ZB.cache.get(cacheKey));
+					return;
+				}
+
 				$.get(MODULE_METADATA_PATH, function (response) {
-					ZeptoBuilder.modules.length = Object.keys(response).length;
-					self.metaData = response;
+					ZB.modules.length = Object.keys(response).length;
+					ZB.cache.set(cacheKey, response);
+					ZB.metaData = response;
 				});
 			},
 
@@ -315,19 +356,21 @@ define([
 			 * @param  {Object} e event object
 			 */
 			generate: function (e) {
-				var $checkboxes = $('.checkbox:checked');
+				var checkboxes = $('.checkbox:checked:not([disabled])').get();
 
 				e.preventDefault();
 
-				if ( !$checkboxes.length ) {
+				if ( !checkboxes.length ) {
 					return;
 				}
+
+				checkboxes.unshift($('.checkbox[disabled]')[0]);
 
 				$generateBtn.attr('disabled', 'disabled');
 				spinner.spin($('#spin')[0]);
 
-				ZeptoBuilder.builder.buildURL(
-					$checkboxes,
+				ZB.builder.buildURL(
+					$(checkboxes),
 					FILE_NAME,
 					'javascript',
 					function (data) {
@@ -335,27 +378,27 @@ define([
 							minified;
 
 						if ( $('#uglify')[0].checked ) {
-							minified = ZeptoBuilder._minify(data.content);
+							minified = ZB._minify(data.content);
 							
 							$('#saved').text('You saved: ' + ((1 - minified.length / output.length) * 100).toFixed(2) + '%');
 
-							if ( ZeptoBuilder.builder.supportsFilesystem ) {
-								ZeptoBuilder.builder.createURL({
+							if ( ZB.builder.supportsFilesystem ) {
+								ZB.builder.createURL({
 									data: minified,
 									lang: 'javascript',
 									fileName: MIN_FILE_NAME,
 									callback: function (url) {
-										ZeptoBuilder.modules.handleOutput(MIN_FILE_NAME, url, minified);
+										ZB.modules.handleOutput(MIN_FILE_NAME, url, minified);
 									}
 								});
 							} else {
-								ZeptoBuilder.modules.handleOutput(null, null, minified);
+								ZB.modules.handleOutput(null, null, minified);
 							}
 
 							return;
 						}
 
-						ZeptoBuilder.modules.handleOutput(FILE_NAME, data.url, output);
+						ZB.modules.handleOutput(FILE_NAME, data.url, output);
 
 						data = null;
 					});
@@ -369,7 +412,7 @@ define([
 			 * @param  {String} output
 			 */
 			handleOutput: function (fileName, url, output) {
-				if ( ZeptoBuilder.builder.supportsFilesystem ) {
+				if ( ZB.builder.supportsFilesystem ) {
 					$saveBtn
 						.attr({
 							'download': fileName,
@@ -378,7 +421,7 @@ define([
 						.css('display', 'inline-block');
 				}
 
-				ZeptoBuilder.modal.show();
+				ZB.modal.show();
 				spinner.stop();
 
 				$generateBtn.removeAttr('disabled');
@@ -389,40 +432,34 @@ define([
 			},
 
 			/**
-			 * Cache the generated module HTML fragments
-			 */
-			cache: function (input) {
-				if ( sessionStorage ) {
-					sessionStorage.setItem('zepto-modules', input);
-				}
-			},
-
-			/**
 			 * Fetches the module contents, either from GitHub or from cache and injects it into the DOM
 			 */
 			load: function() {
-				var self = this;
+				var cacheKey = 'zb-modules';
 
-				if ( sessionStorage && sessionStorage.getItem('zepto-modules') ) {
-					return $modules.html(sessionStorage.getItem('zepto-modules'));
+				if ( ZB.cache.get(cacheKey) ) {
+					return $modules.html(ZB.cache.get(cacheKey));
 				}
 
-				ZeptoBuilder.builder.JSONP(API_URL + REPO_PATH + SRC_PATH + AUTH_QRYSTR, function (response) {
+				ZB.builder.JSONP(API_URL + REPO_PATH + SRC_PATH + AUTH_QRYSTR, function (response) {
 					var tpl = $('#module-tpl').html(),
 						modules = '';
 
 					for (var m in response.data) {
-						if ( self.metaData.hasOwnProperty(response.data[m].name) ) {
-							response.data[m].description = self.metaData[response.data[m].name].description;
-							response.data[m].checked = (self.metaData[response.data[m].name].default ? 'checked' : false);
-							response.data[m].selected = (self.metaData[response.data[m].name].default ? 'selected' : false);
+						if ( ZB.metaData.hasOwnProperty(response.data[m].name) ) {
+							response.data[m].description = ZB.metaData[response.data[m].name].description;
+							response.data[m].checked = (ZB.metaData[response.data[m].name].default ? 'checked' : false);
+							response.data[m].selected = (ZB.metaData[response.data[m].name].default ? 'selected' : false);
+							response.data[m].disabled = (response.data[m].name === 'zepto.js' ? 'disabled' : false);
+							ZB.metaData[response.data[m].name].size = response.data[m].size;
 						}
 						response.data[m].size = _bytesToSize(response.data[m].size);
-						modules += ZeptoBuilder.modules.parse(tpl, response.data[m]);
+						modules += ZB.modules.parse(tpl, response.data[m]);
 					}
 
 					$modules.html(modules);
-					ZeptoBuilder.modules.cache(modules);
+
+					ZB.cache.set(cacheKey, modules);
 				});
 			},
 
@@ -473,7 +510,7 @@ define([
 			toggleAll: function (e) {
 				var rows = 'tr:not(.selected)';
 
-				if ( $modules.find('.checkbox:checked').length === ZeptoBuilder.modules.length ) {
+				if ( $modules.find('.checkbox:checked').length === ZB.modules.length ) {
 					rows = 'tr';
 				}
 
@@ -486,5 +523,5 @@ define([
 		}
 	};
 
-	return ZeptoBuilder.init();
+	return ZB.init();
 });

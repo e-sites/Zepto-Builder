@@ -49,7 +49,7 @@
 				Uglify?
 				<span id="spin"></span>
 			</label>
-			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item {{selected}}"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" {{checked}} value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td class="size">{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide" tabindex="-1"></a></td></tr></script>
+			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item {{selected}} {{disabled}}"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" {{disabled}} {{checked}} value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td class="size">{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide" tabindex="-1"></a></td></tr></script>
 		</form>
 		<footer role="contentinfo">
 			A thing made by <a href="https://twitter.com/_boye">Boye</a> at <a href="http://e-sites.nl/">e-sites HQ</a> and open-sourced at <a href="https://github.com/e-sites/Zepto-Builder">GitHub</a>.
