@@ -68,6 +68,7 @@ define([
 		MODULE_METADATA_PATH = 'assets/json/modules.json',
 		API_URL = 'https://api.github.com',
 		REPO_PATH = '/repos/madrobby/zepto/contents',
+		TOP_COMMENT = '// Zepto %i (generated with Zepto Builder) - %s - zeptojs.com/license \n',
 		SRC_PATH = '/src',
 		AUTH_QRYSTR = (CONFIG.client_id ? '?client_id=' + CONFIG.client_id + '&client_secret=' + CONFIG.client_secret : '');
 
@@ -149,6 +150,13 @@ define([
 
 			return stream.toString();
 		},
+
+		/**
+		 * Zepto version number
+		 * 
+		 * @type {String}
+		 */
+		zeptoVersion: null,
 		
 		/**
 		 * Main init method that kickstarts everything
@@ -174,19 +182,19 @@ define([
 		 * and updates the corresponding DOM element
 		 */
 		showVersion: function () {
-			var cacheKey = 'zb-zepto-version',
-				version;
+			var cacheKey = 'zb-zepto-version';
 
 			if ( this.cache.get(cacheKey) ) {
-				return $('#v').text(this.cache.get(cacheKey));
+				this.zeptoVersion = this.cache.get(cacheKey);
+				return $('#v').text(this.zeptoVersion);
 			}
 
 			this.builder.JSONP(API_URL + REPO_PATH + '/package.json' + AUTH_QRYSTR, function (data) {
-				version = JSON.parse(ZB.builder._parseGithubResponse({'data': data})).version;
+				ZB.zeptoVersion = JSON.parse(ZB.builder._parseGithubResponse({'data': data})).version;
 
-				ZB.cache.set(cacheKey, version);
+				ZB.cache.set(cacheKey, ZB.zeptoVersion);
 
-				$('#v').text(version);
+				$('#v').text(ZB.zeptoVersion);
 			});
 		},
 
@@ -303,6 +311,13 @@ define([
 		modules: {
 
 			/**
+			 * Keeps track of the selected modules
+			 * 
+			 * @type {Array}
+			 */
+			selection: ['zepto', 'event', 'ajax', 'form', 'ie'],
+
+			/**
 			 * Used to map module descriptions
 			 * 
 			 * @type {Object}
@@ -312,7 +327,7 @@ define([
 			/**
 			 * Initializes module overview
 			 */
-			init: function() {
+			init: function () {
 				this.load();
 				this.loadMetaData();
 				this.observe();
@@ -374,11 +389,12 @@ define([
 					FILE_NAME,
 					'javascript',
 					function (data) {
-						var output = data.content,
-							minified;
+						var comment = TOP_COMMENT.replace('%i', ZB.zeptoVersion).replace('%s', ZB.modules.selection.join(' ')),
+							output = comment + data.content,
+							minified = comment;
 
 						if ( $('#uglify')[0].checked ) {
-							minified = ZB._minify(data.content);
+							minified += ZB._minify(data.content);
 							
 							$('#saved').text('You saved: ' + ((1 - minified.length / output.length) * 100).toFixed(2) + '%');
 
@@ -401,6 +417,7 @@ define([
 						ZB.modules.handleOutput(FILE_NAME, data.url, output);
 
 						data = null;
+						output = null;
 					});
 			},
 
@@ -438,7 +455,7 @@ define([
 				var cacheKey = 'zb-modules';
 
 				if ( ZB.cache.get(cacheKey) ) {
-					return $modules.html(ZB.cache.get(cacheKey));
+					return $modules.html( ZB.cache.get(cacheKey) );
 				}
 
 				ZB.builder.JSONP(API_URL + REPO_PATH + SRC_PATH + AUTH_QRYSTR, function (response) {
@@ -451,6 +468,7 @@ define([
 							response.data[m].checked = (ZB.metaData[response.data[m].name].default ? 'checked' : false);
 							response.data[m].selected = (ZB.metaData[response.data[m].name].default ? 'selected' : false);
 							response.data[m].disabled = (response.data[m].name === 'zepto.js' ? 'disabled' : false);
+
 							ZB.metaData[response.data[m].name].size = response.data[m].size;
 						}
 						response.data[m].size = _bytesToSize(response.data[m].size);
@@ -487,7 +505,8 @@ define([
 			 */
 			select: function (e) {
 				var $row = $(e.target).parents('tr'),
-					$checkbox = $row.find('.checkbox');
+					$checkbox = $row.find('.checkbox'),
+					mod = $checkbox[0].value.replace(/src\/(.+).js/, '$1');
 
 				$row.toggleClass('selected');
 
@@ -495,13 +514,13 @@ define([
 					return;
 				}
 
-				$checkbox.prop('checked', !$checkbox[0].checked);
-
-				if ( !$('.checkbox:checked').length ) {
-					$generateBtn.attr('disabled', 'disabled');
-				} else {
-					$generateBtn.removeAttr('disabled');
+				if ( $checkbox[0].checked && $.inArray(mod, ZB.modules.selection) > -1 ) {
+					ZB.modules.selection.splice($.inArray(mod, ZB.modules.selection), 1);
+				} else if ( !$checkbox[0].checked ) {
+					ZB.modules.selection.push(mod);
 				}
+
+				$checkbox.prop('checked', !$checkbox[0].checked);
 			},
 
 			/**

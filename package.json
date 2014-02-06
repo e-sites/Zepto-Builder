@@ -1,7 +1,7 @@
 {
   "name": "ZeptoBuilder",
   "description": "Zepto Builder will let you generate a custom version of Zepto that just includes the modules you need.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "homepage": "http://github.e-sites.nl/ZeptoBuilder",
   "repository": {
     "type": "git",

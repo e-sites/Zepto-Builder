@@ -93,7 +93,14 @@ module.exports = function(grunt) {
 				},
 				options: {
 					compress: true,
-					ignore: ['.text-hide', '.gh', '.topcoat-list__item.selected td', '.move-from-top .modal', '.move-from-top .overlay']
+					ignore: [
+						'.text-hide',
+						'.gh',
+						'.topcoat-list__item.selected td',
+						'.move-from-top .modal',
+						'.move-from-top .overlay',
+						'input[type="checkbox"]:disabled + .topcoat-checkbox__checkmark'
+					]
 				}
 			}
 		},
