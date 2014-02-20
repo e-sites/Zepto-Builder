@@ -25,21 +25,23 @@
 		<form id="builder" method="POST" role="form">
 			<div class="topcoat-list">
 				<h2 class="topcoat-list__header"><a href="http://zeptojs.com/" target="_blank">Zepto <span id="v"></span></a></h2>
-				<div class="topcoat-list__container">
-					<table>
-						<caption class="text-hide">Overview of all available Zepto modules</caption>
-						<thead>
-							<tr>
-								<th></th>
-								<th>Module</th>
-								<th>Filesize</th>
-								<th>URL</th>
-							</tr>
-						</thead>
-						<tbody id="modules">
-							<tr class="topcoat-list__item"><td colspan="4" class="text-center"><em>Fetching modules from GitHub...</em></td></tr>
-						</tbody>
-					</table>
+				<div class="fixed-table-container">
+					<div class="topcoat-list__container">
+						<table>
+							<caption class="text-hide">Overview of all available Zepto modules</caption>
+							<thead>
+								<tr>
+									<th></th>
+									<th><div class="th-inner">Module</div></th>
+									<th><div class="th-inner">Filesize</div></th>
+									<th><div class="th-inner">URL</div></th>
+								</tr>
+							</thead>
+							<tbody id="modules">
+								<tr class="topcoat-list__item"><td colspan="4" class="text-center"><em>Fetching modules from GitHub...</em></td></tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 			<button type="submit" class="topcoat-button--cta" id="btn-generate">Generate custom build</button>

@@ -15,6 +15,8 @@ define([
 		$modules = $('#modules'),
 		$generateBtn = $('#btn-generate'),
 		$saveBtn = $('#btn-save'),
+		$spin = $('#spin'),
+		$uglify = $('#uglify'),
 
 		// Feature detect + local reference
 		// Courtesy of Mathias Bynens
@@ -43,12 +45,9 @@ define([
 			rotate: 0,
 			direction: 1,
 			color: '#4CA1E4',
-			speed: 1,
 			trail: 60,
 			shadow: false,
 			hwaccel: true,
-			className: 'spinner',
-			zIndex: 2e9,
 			top: '-28px',
 			left: '110px'
 		}),
@@ -74,6 +73,7 @@ define([
 
 	/**
 	 * Small bytesToSize helper (courtesy of Stephen Cronin)
+	 * 
 	 * @see http://scratch99.com/web-development/javascript/convert-bytes-to-mb-kb/
 	 * @param  {Number} bytes
 	 * @return {Number}
@@ -191,7 +191,6 @@ define([
 
 			this.builder.JSONP(API_URL + REPO_PATH + '/package.json' + AUTH_QRYSTR, function (data) {
 				ZB.zeptoVersion = JSON.parse(ZB.builder._parseGithubResponse({'data': data})).version;
-
 				ZB.cache.set(cacheKey, ZB.zeptoVersion);
 
 				$('#v').text(ZB.zeptoVersion);
@@ -366,23 +365,21 @@ define([
 			},
 
 			/**
-			 * Generates the actual Zepto build and shows the 
+			 * Generates the actual Zepto build
 			 * 
 			 * @param  {Object} e event object
 			 */
 			generate: function (e) {
+				/* global _gaq */
+
 				var checkboxes = $('.checkbox:checked:not([disabled])').get();
 
 				e.preventDefault();
 
-				if ( !checkboxes.length ) {
-					return;
-				}
-
 				checkboxes.unshift($('.checkbox[disabled]')[0]);
+				spinner.spin( $spin[0] );
 
 				$generateBtn.attr('disabled', 'disabled');
-				spinner.spin($('#spin')[0]);
 
 				ZB.builder.buildURL(
 					$(checkboxes),
@@ -393,7 +390,16 @@ define([
 							output = comment + data.content,
 							minified = comment;
 
-						if ( $('#uglify')[0].checked ) {
+						if ( typeof _gaq === 'object' ) {
+							_gaq.push([
+								'_trackEvent',
+								'Zepto ' + ZB.zeptoVersion + ($uglify[0].checked ? ' (minified)' : ''),
+								'Generate',
+								'Modules: ' + ZB.modules.selection.join(', ')
+							]);
+						}
+
+						if ( $uglify[0].checked ) {
 							minified += ZB._minify(data.content);
 							
 							$('#saved').text('You saved: ' + ((1 - minified.length / output.length) * 100).toFixed(2) + '%');
@@ -504,7 +510,7 @@ define([
 			 * @param  {Object} e event object
 			 */
 			select: function (e) {
-				var $row = $(e.target).parents('tr'),
+				var $row = $(this),
 					$checkbox = $row.find('.checkbox'),
 					mod = $checkbox[0].value.replace(/src\/(.+).js/, '$1');
 
@@ -529,12 +535,12 @@ define([
 			toggleAll: function (e) {
 				var rows = 'tr:not(.selected)';
 
-				if ( $modules.find('.checkbox:checked').length === ZB.modules.length ) {
+				if ( $modules.find('.checkbox').length === ZB.modules.selection.length ) {
 					rows = 'tr';
 				}
 
 				$modules.find(rows).each(function () {
-					$(this).find('.checkbox').trigger('click');
+					$(this).trigger('click');
 				});
 
 				e.preventDefault();
