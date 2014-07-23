@@ -39,7 +39,7 @@ iframe {overflow:hidden; border:0;}
 .modal {width:100%; padding:1em; background:#fff; max-width:30em; top:0; left:50%; margin-left:-15em; position:absolute; top:-1000px; -webkit-transform: translateY(-1000px); transform: translateY(-1000px); z-index:11; -webkit-transition: all 0.25s; transition: all 0.25s;}
 .saved {display:none;}
 
-.move-from-top .modal {-webkit-transform: translateY(0); transform: translateY(0); top:0;}
+.move-from-top .modal.active {-webkit-transform: translateY(0); transform: translateY(0); top:0;}
 .move-from-top .overlay {z-index:10; opacity:0.8;}
 .move-from-top .saved {display:inline-block;}
 

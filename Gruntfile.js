@@ -97,7 +97,7 @@ module.exports = function(grunt) {
 						'.text-hide',
 						'.gh',
 						'.topcoat-list__item.selected td',
-						'.move-from-top .modal',
+						'.move-from-top .modal.active',
 						'.move-from-top .overlay',
 						'input[type="checkbox"]:disabled + .topcoat-checkbox__checkmark'
 					]

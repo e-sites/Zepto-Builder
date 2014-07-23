@@ -13,6 +13,8 @@ define([
 		$body = $('body'),
 		$source = $('#source'),
 		$modules = $('#modules'),
+		$comment = $('#comment'),
+		$modals = $('.modal'),
 		$generateBtn = $('#btn-generate'),
 		$saveBtn = $('#btn-save'),
 		$spin = $('#spin'),
@@ -59,8 +61,8 @@ define([
 			'author': 'madrobby',
 			'repo': 'zepto',
 			'branch': 'master',
-			'client_id': '44ea087258fd57a58a53',
-			'client_secret': '08e6bdee04caf16e0f4e6f9b4508adc43ac8a7cd'
+			'client_id': '',
+			'client_secret': ''
 		},
 		FILE_NAME = 'zepto.js',
 		MIN_FILE_NAME = FILE_NAME.replace('.', '.min.'),
@@ -161,7 +163,7 @@ define([
 		/**
 		 * Main init method that kickstarts everything
 		 * 
-		 * @return {[type]} [description]
+		 * @return {Object} [description]
 		 */
 		init: function () {
 			this.builder = new DownloadBuilder(CONFIG);
@@ -173,6 +175,7 @@ define([
 			key('⌘+a, ctrl+a', this.modules.toggleAll);
 			key('⌘+shift+a, ctrl+shift+a', this.modules.toggleAll);
 			key('esc', this.modal.hide);
+			key('p', this.showPresetModal);
 
 			return this;
 		},
@@ -195,6 +198,17 @@ define([
 
 				$('#v').text(ZB.zeptoVersion);
 			});
+		},
+
+		/**
+		 * Shows modal where one can paste zepto.js header comment to load a module preset
+		 *
+		 * @param {Object} event object
+		 */
+		showPresetModal: function (e) {
+			ZB.modal.show('#preset');
+			$comment.focus();
+			e.preventDefault();
 		},
 
 		/**
@@ -290,15 +304,25 @@ define([
 			/**
 			 * Show modal dialog
 			 */
-			show: function () {
+			show: function (selector) {
+				$modals
+					.removeClass('active')
+					.filter(selector)
+					.addClass('active');
+				
 				$body.addClass('move-from-top');
 			},
 
 			/**
 			 * Hide modal dialog
 			 */
-			hide: function () {
+			hide: function (cb) {
 				$body.removeClass('move-from-top');
+				$modals.removeClass('active').off();
+
+				if ( cb && $.isFunction(cb) ) {
+					cb.apply(ZB, []);
+				}
 			}
 			
 		},
@@ -339,6 +363,7 @@ define([
 				$(document)
 					.on('click', '.overlay', ZB.modal.hide)
 					.on('submit', '#builder', this.generate)
+					.on('paste', '#comment', this.handlePreset)
 					.on('click', '.topcoat-list__item:not(.disabled)', this.select)
 					.on('mouseenter', '.topcoat-list__item', ZB.tooltip.show)
 					.on('mousemove', '.topcoat-list__item', ZB.tooltip.move)
@@ -428,6 +453,28 @@ define([
 			},
 
 			/**
+			 * Extracts modules based on the given header comment
+			 */
+			handlePreset: function () {
+				setTimeout($.proxy(function () {
+					if ( this.value && this.value.match(/zeptojs.com\/license/) ) {
+						ZB.modules.resetSelection();
+
+						$.each($.trim(this.value.split('-')[1]).split(' '), function () {
+							$modules
+								.find('input[value="src/' + this + '.js"]')
+								.parents('tr')
+								.trigger('click');
+						});
+
+						ZB.modal.hide(function () {
+							$comment.val('').blur();
+						});
+					}
+				}, this), 250);
+			},
+
+			/**
 			 * Handles the last step in the generate process
 			 * 
 			 * @param  {String} fileName
@@ -441,10 +488,11 @@ define([
 							'download': fileName,
 							'href': url
 						})
+						.on('click', ZB.modal.hide)
 						.css('display', 'inline-block');
 				}
 
-				ZB.modal.show();
+				ZB.modal.show('#output');
 				spinner.stop();
 
 				$generateBtn.removeAttr('disabled');
@@ -525,6 +573,13 @@ define([
 				} else if ( $checkbox[0].checked ) {
 					ZB.modules.selection.push(mod);
 				}
+			},
+
+			/**
+			 * Resets current selection, except for the core module
+			 */
+			resetSelection: function () {
+				$modules.find('.checkbox').filter(':checked').parents('tr').trigger('click');
 			},
 
 			/**
