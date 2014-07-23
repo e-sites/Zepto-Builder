@@ -59,8 +59,8 @@ define([
 			'author': 'madrobby',
 			'repo': 'zepto',
 			'branch': 'master',
-			'client_id': '',
-			'client_secret': ''
+			'client_id': '44ea087258fd57a58a53',
+			'client_secret': '08e6bdee04caf16e0f4e6f9b4508adc43ac8a7cd'
 		},
 		FILE_NAME = 'zepto.js',
 		MIN_FILE_NAME = FILE_NAME.replace('.', '.min.'),
@@ -471,9 +471,9 @@ define([
 					for (var m in response.data) {
 						if ( ZB.metaData.hasOwnProperty(response.data[m].name) ) {
 							response.data[m].description = ZB.metaData[response.data[m].name].description;
-							response.data[m].checked = (ZB.metaData[response.data[m].name].default ? 'checked' : false);
-							response.data[m].selected = (ZB.metaData[response.data[m].name].default ? 'selected' : false);
-							response.data[m].disabled = (response.data[m].name === 'zepto.js' ? 'disabled' : false);
+							response.data[m].checked = (ZB.metaData[response.data[m].name].default ? 'checked' : '');
+							response.data[m].selected = (ZB.metaData[response.data[m].name].default ? 'selected' : '');
+							response.data[m].disabled = (response.data[m].name === 'zepto.js' ? 'disabled' : '');
 
 							ZB.metaData[response.data[m].name].size = response.data[m].size;
 						}
@@ -516,17 +516,15 @@ define([
 
 				$row.toggleClass('selected');
 
-				if ( e.target.nodeName === 'INPUT' ) {
-					return;
+				if ( e.target.nodeName !== 'INPUT' ) {
+					$checkbox.prop('checked', !$checkbox[0].checked);
 				}
 
-				if ( $checkbox[0].checked && $.inArray(mod, ZB.modules.selection) > -1 ) {
+				if ( !$checkbox[0].checked && $.inArray(mod, ZB.modules.selection) > -1 ) {
 					ZB.modules.selection.splice($.inArray(mod, ZB.modules.selection), 1);
-				} else if ( !$checkbox[0].checked ) {
+				} else if ( $checkbox[0].checked ) {
 					ZB.modules.selection.push(mod);
 				}
-
-				$checkbox.prop('checked', !$checkbox[0].checked);
 			},
 
 			/**
