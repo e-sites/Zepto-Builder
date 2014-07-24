@@ -15,6 +15,7 @@ define([
 		$modules = $('#modules'),
 		$comment = $('#comment'),
 		$modals = $('.modal'),
+		$saved = $('#saved'),
 		$generateBtn = $('#btn-generate'),
 		$saveBtn = $('#btn-save'),
 		$spin = $('#spin'),
@@ -159,6 +160,13 @@ define([
 		 * @type {String}
 		 */
 		zeptoVersion: null,
+
+		/**
+		 * Total file size of the custom build
+		 * 
+		 * @type {Number}
+		 */
+		totalFileSize: 0,
 		
 		/**
 		 * Main init method that kickstarts everything
@@ -209,6 +217,47 @@ define([
 			ZB.modal.show('#preset');
 			$comment.focus();
 			e.preventDefault();
+		},
+
+		/**
+		 * Keeps track of the total file size
+		 * Both as private member as wel as in session storage
+		 * 
+		 * @param  {Number} fs file size
+		 */
+		updateFileSize: function (fs) {
+			if ( !fs ) {
+				fs = 0;
+				$modules.find('tr.selected').find('.size').each(function () {
+					fs += $(this).data('bytes');
+				});
+			}
+
+			ZB.totalFileSize = Number(fs);
+
+			$('#total-size').html( '(' + _bytesToSize(ZB.totalFileSize) + ')' );
+		},
+
+		/**
+		 * GA tracking logic
+		 *
+		 * @param {String} category
+		 * @param {String} action
+		 * @param {String} label
+		 * @see https://developers.google.com/analytics/devguides/collection/gajs/eventTrackerGuide
+		 */
+		trackEvent: function (category, action, label) {
+			/* global _gaq */
+
+			if ( typeof _gaq !== 'object' ) {
+				return;
+			}
+
+			if ( label ) {
+				_gaq.push(['_trackEvent', category, action, label]);
+			} else {
+				_gaq.push(['_trackEvent', category, action]);
+			}
 		},
 
 		/**
@@ -395,8 +444,6 @@ define([
 			 * @param  {Object} e event object
 			 */
 			generate: function (e) {
-				/* global _gaq */
-
 				var checkboxes = $('.checkbox:checked:not([disabled])').get();
 
 				e.preventDefault();
@@ -413,21 +460,22 @@ define([
 					function (data) {
 						var comment = TOP_COMMENT.replace('%i', ZB.zeptoVersion).replace('%s', ZB.modules.selection.join(' ')),
 							output = comment + data.content,
-							minified = comment;
+							minified = comment,
+							percentage;
 
-						if ( typeof _gaq === 'object' ) {
-							_gaq.push([
-								'_trackEvent',
-								'Zepto ' + ZB.zeptoVersion + ($uglify[0].checked ? ' (minified)' : ''),
-								'Generate',
-								'Modules: ' + ZB.modules.selection.join(', ')
-							]);
-						}
+						ZB.trackEvent(
+							'Zepto ' + ZB.zeptoVersion + ($uglify[0].checked ? ' (minified)' : ''),
+							'Generate',
+							'Modules: ' + ZB.modules.selection.join(', ')
+						);
+
+						$saved.empty();
 
 						if ( $uglify[0].checked ) {
 							minified += ZB._minify(data.content);
+							percentage = ((1 - minified.length / output.length) * 100).toFixed(2);
 							
-							$('#saved').text('You saved: ' + ((1 - minified.length / output.length) * 100).toFixed(2) + '%');
+							$saved.text( _bytesToSize(ZB.totalFileSize - ((percentage / 100) * ZB.totalFileSize)) + ' (you saved: ' + percentage + '%)');
 
 							if ( ZB.builder.supportsFilesystem ) {
 								ZB.builder.createURL({
@@ -436,10 +484,12 @@ define([
 									fileName: MIN_FILE_NAME,
 									callback: function (url) {
 										ZB.modules.handleOutput(MIN_FILE_NAME, url, minified);
+										minified = null;
 									}
 								});
 							} else {
 								ZB.modules.handleOutput(null, null, minified);
+								minified = null;
 							}
 
 							return;
@@ -466,6 +516,12 @@ define([
 								.parents('tr')
 								.trigger('click');
 						});
+
+						ZB.trackEvent(
+							'Zepto ' + ZB.zeptoVersion,
+							'Preset',
+							'Modules: ' + ZB.modules.selection.join(', ')
+						);
 
 						ZB.modal.hide(function () {
 							$comment.val('').blur();
@@ -509,11 +565,12 @@ define([
 				var cacheKey = 'zb-modules';
 
 				if ( ZB.cache.get(cacheKey) ) {
-					return $modules.html( ZB.cache.get(cacheKey) );
+					return $modules.html( ZB.cache.get(cacheKey) ) && ZB.updateFileSize();
 				}
 
 				ZB.builder.JSONP(API_URL + REPO_PATH + SRC_PATH + AUTH_QRYSTR, function (response) {
 					var tpl = $('#module-tpl').html(),
+						fileSize = 0,
 						modules = '';
 
 					for (var m in response.data) {
@@ -525,12 +582,19 @@ define([
 
 							ZB.metaData[response.data[m].name].size = response.data[m].size;
 						}
+						response.data[m].bytes = response.data[m].size;
 						response.data[m].size = _bytesToSize(response.data[m].size);
+
+						if ( response.data[m].selected ) {
+							fileSize += response.data[m].bytes;
+						}
+
 						modules += ZB.modules.parse(tpl, response.data[m]);
 					}
 
 					$modules.html(modules);
 
+					ZB.updateFileSize(fileSize);
 					ZB.cache.set(cacheKey, modules);
 				});
 			},
@@ -560,7 +624,8 @@ define([
 			select: function (e) {
 				var $row = $(this),
 					$checkbox = $row.find('.checkbox'),
-					mod = $checkbox[0].value.replace(/src\/(.+).js/, '$1');
+					mod = $checkbox[0].value.replace(/src\/(.+).js/, '$1'),
+					fileSize;
 
 				$row.toggleClass('selected');
 
@@ -570,9 +635,13 @@ define([
 
 				if ( !$checkbox[0].checked && $.inArray(mod, ZB.modules.selection) > -1 ) {
 					ZB.modules.selection.splice($.inArray(mod, ZB.modules.selection), 1);
+					fileSize = ZB.totalFileSize - $row.find('.size').data('bytes');
 				} else if ( $checkbox[0].checked ) {
 					ZB.modules.selection.push(mod);
+					fileSize = ZB.totalFileSize + $row.find('.size').data('bytes');
 				}
+
+				ZB.updateFileSize( fileSize );
 			},
 
 			/**

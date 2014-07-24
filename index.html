@@ -33,7 +33,7 @@
 								<tr>
 									<th></th>
 									<th><div class="th-inner">Module</div></th>
-									<th><div class="th-inner">Filesize</div></th>
+									<th><div class="th-inner">File size</div></th>
 									<th><div class="th-inner">URL</div></th>
 								</tr>
 							</thead>
@@ -44,17 +44,17 @@
 					</div>
 				</div>
 			</div>
-			<button type="submit" class="topcoat-button--cta" id="btn-generate">Generate custom build</button>
+			<button type="submit" class="topcoat-button--cta" id="btn-generate">Generate custom build <small id="total-size"></small></button>
 			<label class="topcoat-checkbox uglify-option">
 				<input type="checkbox" id="uglify">
 				<span class="topcoat-checkbox__checkmark"></span>
 				Uglify?
 				<span id="spin"></span>
 			</label>
-			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item {{selected}} {{disabled}}"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" {{disabled}} {{checked}} value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td class="size">{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide" tabindex="-1"></a></td></tr></script>
+			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item {{selected}} {{disabled}}"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" {{disabled}} {{checked}} value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td data-bytes="{{bytes}}" class="size">{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide" tabindex="-1"></a></td></tr></script>
 		</form>
 		<footer role="contentinfo">
-			A thing made by <a href="https://twitter.com/_boye">Boye</a> at <a href="http://e-sites.nl/">e-sites HQ</a> and open-sourced at <a href="https://github.com/e-sites/Zepto-Builder">GitHub</a>.
+			A thing made by <a href="https://twitter.com/_boye">Boye</a> at <a href="http://e-sites.nl/">E-sites HQ</a> and open-sourced at <a href="https://github.com/e-sites/Zepto-Builder">GitHub</a>.
 			<p>
 				<small>A special shout out to Thomas Fuchs, of Zepto fame.</small>
 			</p>
@@ -75,7 +75,8 @@
 		</div>
 		<div aria-hidden="true" role="dialog" class="modal" id="preset">
 			<h2>Load Zepto preset</h2>
-			<textarea class="topcoat-textarea" rows="6" cols="36" id="comment"></textarea>
+			<p>Paste the header comment from old Zepto projects below to load the corresponding preset.</p>
+			<textarea class="topcoat-textarea" rows="6" cols="36" id="comment" placeholder="e.g. /* Zepto 1.0rc1 - polyfill zepto event detect fx ajax form fx_methods - zeptojs.com/license */"></textarea>
 		</div>
 		<div class="overlay"></div>
 		<!--[if lte IE 9]><script src="//code.jquery.com/jquery-1.11.1.min.js"></script><![endif]-->

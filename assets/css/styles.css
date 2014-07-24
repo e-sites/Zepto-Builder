@@ -29,11 +29,12 @@ iframe {overflow:hidden; border:0;}
 .topcoat-list__item {line-height:3;}
 .topcoat-list__item td {transition:.4s ease-in-out; -webkit-transition:.4s ease-in-out; position:relative; vertical-align:middle;}
 .topcoat-list__item.selected td,
-.topcoat-list__item:hover td {background-color:#d2d6d6;}
+.topcoat-list__item:hover td {background-color:#d2d6d6; cursor:pointer;}
 .topcoat-checkbox {vertical-align:middle;}
 .topcoat-checkbox__checkmark {text-align:left; margin-right:.5em;}
 .topcoat-textarea {margin:0 0 1em; font-size:80%; line-height:1; padding:0; border-radius:0; font-family:monospace; height:10em;}
-.topcoat-button--cta small {font-size:12px;}
+.topcoat-button--cta {cursor:pointer;}
+.topcoat-button--cta small {font-size:12px; font-weight:normal;}
 
 .overlay {width:100%; height:100%; top:0; left:0; opacity:0; z-index:-1; transition: all 0.2s; -webkit-transition: all 0.2s; background:#000; position:fixed;}
 .modal {width:100%; padding:1em; background:#fff; max-width:30em; top:0; left:50%; margin-left:-15em; position:absolute; top:-1000px; -webkit-transform: translateY(-1000px); transform: translateY(-1000px); z-index:11; -webkit-transition: all 0.25s; transition: all 0.25s;}
