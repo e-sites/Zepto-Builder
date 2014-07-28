@@ -7,7 +7,7 @@ Zepto Builder
 The service itself is located @ http://github.e-sites.nl/zeptobuilder/
 
 ##Why this tool?
-By default, Zepto provides a build tool, based on Node.js and Coffeescript. So, why this tool? Well, for starters because there are some folk that are simply not comfortable with a CLI :).
+By default, Zepto provides a build tool, based on Node.js and Coffeescript. So, why this tool? Well, mainly because a web interface is far more accessible and easier to use than a CLI.
 
 ##Getting started
 After cloning (or downloading) the repo you must run <code>npm install</code> to fetch all dependencies, when this is done all Bower packages will automatically be downloaded and a browser build of Uglify will be created. Needless to say, for this to work you will need to have Node.js and Bower installed on your machine.
@@ -35,7 +35,7 @@ Tested in the latest (stable) versions of Google Chrome, Mozilla Firefox, Opera 
 <ul>
 	<li><del>Improve browser support</del> <ins>As from 0.4.0, IE9 is supported as well</li>
 	<li><del>Offer 'save to disk' option for minified builds as well</del> <ins>This feature landed in 0.4.0</ins></li>
-	<li>File size totals when selecting modules</li>
+	<li><del>File size totals when selecting modules</del> Landed in 0.6.0</li>
 	<li>Complement docs and inline comments</li>
 	<li>Unit testing</li>
 	<li><em>...any other suggestions are welcome!</em></li>
