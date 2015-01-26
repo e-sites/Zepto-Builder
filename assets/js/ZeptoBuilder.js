@@ -1,14 +1,19 @@
-define([
-	'zepto',
-	'DownloadBuilder',
-	'uglify',
-	'keymaster',
-	'spin'
-], function(Zepto, DownloadBuilder, UglifyJS, key, Spinner) {
+/*
+ *  Zepto Builder
+ *  Zepto Builder will let you generate a custom version of Zepto that just includes the modules you need
+ *
+ *  @author  : Boye Oomens <github@e-sites.nl>
+ *  @version : 0.7.0
+ *  @license : MIT
+ *  @see     : http://github.e-sites.nl/zeptobuilder/
+ */
+
+(function () {
+	/*global jQuery, Zepto, Spinner, UglifyJS, DownloadBuilder, key */
 
 	'use strict';
 
-	// Cached Zepto sets
+	// Cached DOM elements
 	var $ = (window.jQuery ? jQuery : Zepto),
 		$body = $('body'),
 		$source = $('#source'),
@@ -51,8 +56,8 @@ define([
 			trail: 60,
 			shadow: false,
 			hwaccel: true,
-			top: '-28px',
-			left: '110px'
+			top: '15px',
+			left: '120px'
 		}),
 
 		// Some static stuff
@@ -76,7 +81,7 @@ define([
 
 	/**
 	 * Small bytesToSize helper (courtesy of Stephen Cronin)
-	 * 
+	 *
 	 * @see http://scratch99.com/web-development/javascript/convert-bytes-to-mb-kb/
 	 * @param  {Number} bytes
 	 * @return {Number}
@@ -95,7 +100,7 @@ define([
 
 	/**
 	 * Namespace that encapsulates all ZB related logic
-	 * 
+	 *
 	 * @type {Object}
 	 */
 	var ZB = {
@@ -103,7 +108,7 @@ define([
 		/**
 		 * Minify wrapper that leverages Uglify
 		 * Based on https://gist.github.com/jpillora/5652641
-		 * 
+		 *
 		 * @param  {String} codes
 		 * @param  {Object} options
 		 * @return {String} minified output
@@ -156,21 +161,21 @@ define([
 
 		/**
 		 * Zepto version number
-		 * 
+		 *
 		 * @type {String}
 		 */
 		zeptoVersion: null,
 
 		/**
 		 * Total file size of the custom build
-		 * 
+		 *
 		 * @type {Number}
 		 */
 		totalFileSize: 0,
-		
+
 		/**
 		 * Main init method that kickstarts everything
-		 * 
+		 *
 		 * @return {Object} [description]
 		 */
 		init: function () {
@@ -222,7 +227,7 @@ define([
 		/**
 		 * Keeps track of the total file size
 		 * Both as private member as wel as in session storage
-		 * 
+		 *
 		 * @param  {Number} fs file size
 		 */
 		updateFileSize: function (fs) {
@@ -269,7 +274,7 @@ define([
 
 			/**
 			 * Write to cache (and format objects if necessary)
-			 * 
+			 *
 			 * @param {String}        key
 			 * @param {String|Object} value
 			 */
@@ -284,7 +289,7 @@ define([
 
 			/**
 			 * Fetch items from cache
-			 * 
+			 *
 			 * @param  {String} key
 			 * @return {String}
 			 */
@@ -297,14 +302,14 @@ define([
 		/**
 		 * Simple tooltip functionality that shows the module description
 		 * when hovering the table rows
-		 * 
+		 *
 		 * @type {Object}
 		 */
 		tooltip: {
 
 			/**
 			 * Tooltip DOM element
-			 * 
+			 *
 			 * @type {Object}
 			 */
 			$el: $('.tooltip'),
@@ -338,7 +343,7 @@ define([
 
 		/**
 		 * Modal dialog with the generated output
-		 * 
+		 *
 		 * @type {Object}
 		 */
 		modal: {
@@ -358,7 +363,7 @@ define([
 					.removeClass('active')
 					.filter(selector)
 					.addClass('active');
-				
+
 				$body.addClass('move-from-top');
 			},
 
@@ -373,7 +378,7 @@ define([
 					cb.apply(ZB, []);
 				}
 			}
-			
+
 		},
 
 		/**
@@ -384,14 +389,14 @@ define([
 
 			/**
 			 * Keeps track of the selected modules
-			 * 
+			 *
 			 * @type {Array}
 			 */
 			selection: ['zepto', 'event', 'ajax', 'form', 'ie'],
 
 			/**
 			 * Used to map module descriptions
-			 * 
+			 *
 			 * @type {Object}
 			 */
 			metaData: {},
@@ -440,7 +445,7 @@ define([
 
 			/**
 			 * Generates the actual Zepto build
-			 * 
+			 *
 			 * @param  {Object} e event object
 			 */
 			generate: function (e) {
@@ -474,7 +479,7 @@ define([
 						if ( $uglify[0].checked ) {
 							minified += ZB._minify(data.content);
 							percentage = ((1 - minified.length / output.length) * 100).toFixed(2);
-							
+
 							$saved.text( _bytesToSize(ZB.totalFileSize - ((percentage / 100) * ZB.totalFileSize)) + ' (you saved: ' + percentage + '%)');
 
 							if ( ZB.builder.supportsFilesystem ) {
@@ -532,7 +537,7 @@ define([
 
 			/**
 			 * Handles the last step in the generate process
-			 * 
+			 *
 			 * @param  {String} fileName
 			 * @param  {String} url
 			 * @param  {String} output
@@ -618,7 +623,7 @@ define([
 			/**
 			 * Selects the clicked row and corresponding checkbox
 			 * Also, disables the generate button when no modules are selected
-			 * 
+			 *
 			 * @param  {Object} e event object
 			 */
 			select: function (e) {
@@ -671,4 +676,4 @@ define([
 	};
 
 	return ZB.init();
-});
+}());

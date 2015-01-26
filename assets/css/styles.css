@@ -36,6 +36,7 @@ iframe {overflow:hidden; border:0;}
 .topcoat-button--cta {cursor:pointer;}
 .topcoat-button--cta small {font-size:12px; font-weight:normal;}
 
+.spinner {display: inline-block;}
 .overlay {width:100%; height:100%; top:0; left:0; opacity:0; z-index:-1; transition: all 0.2s; -webkit-transition: all 0.2s; background:#000; position:fixed;}
 .modal {width:100%; padding:1em; background:#fff; max-width:30em; top:0; left:50%; margin-left:-15em; position:absolute; top:-1000px; -webkit-transform: translateY(-1000px); transform: translateY(-1000px); z-index:11; -webkit-transition: all 0.25s; transition: all 0.25s;}
 .saved {display:none;}

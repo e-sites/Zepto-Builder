@@ -9,7 +9,7 @@
 		<!-- build:css assets/css/styles.min.css -->
 		<link rel="stylesheet" href="assets/bower/topcoat/css/topcoat-mobile-light.css">
 		<link rel="stylesheet" href="assets/css/styles.css">
-		<!-- /build -->
+		<!-- endbuild -->
 		<script>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-18924418-8'],['_setDomainName', '.e-sites.nl'],['_trackPageview'],['_trackPageLoadTime']);(function(b,c){var a=b.createElement(c),d=b.getElementsByTagName(c)[0];a.async=a.src='//www.google-analytics.com/ga.js';d.parentNode.insertBefore(a,d)})(document,'script');</script>
 	</head>
 	<body>
@@ -49,7 +49,7 @@
 				<input type="checkbox" id="uglify">
 				<span class="topcoat-checkbox__checkmark"></span>
 				Uglify?
-				<span id="spin"></span>
+				<span class="spinner" id="spin"></span>
 			</label>
 			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item {{selected}} {{disabled}}"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" {{disabled}} {{checked}} value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td data-bytes="{{bytes}}" class="size">{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide" tabindex="-1"></a></td></tr></script>
 		</form>
@@ -79,9 +79,15 @@
 			<textarea class="topcoat-textarea" rows="6" cols="36" id="comment" placeholder="e.g. /* Zepto 1.0rc1 - polyfill zepto event detect fx ajax form fx_methods - zeptojs.com/license */"></textarea>
 		</div>
 		<div class="overlay"></div>
-		<!--[if lte IE 9]><script src="//code.jquery.com/jquery-1.11.1.min.js"></script><![endif]-->
-		<!-- build:js assets/js/build.min.js -->
-		<script src="assets/bower/requirejs/require.js" data-main="assets/js/main"></script>
-		<!-- /build -->
+		<!--[if lte IE 9]><script src="//code.jquery.com/jquery-1.11.2.min.js"></script><![endif]-->
+		<!-- build:js assets/js/build.min.js-->
+		<script src="assets/js/zepto.js"></script>
+		<script src="assets/bower/base64/base64.js"></script>
+		<script src="assets/js/DownloadBuilder.js"></script>
+		<script src="assets/js/uglify.min.js"></script>
+		<script src="assets/bower/keymaster/keymaster.js"></script>
+		<script src="assets/bower/spin.js/spin.js"></script>
+		<script src="assets/js/ZeptoBuilder.js"></script>
+		<!-- endbuild -->
 	</body>
 </html>

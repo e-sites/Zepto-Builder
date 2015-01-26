@@ -17,8 +17,7 @@
     "define",
     "require",
     "log",
-    "J$",
-    "jsend"
+    "console"
   ],
 
   "debug"         : false,

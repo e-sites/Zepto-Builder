@@ -44,3 +44,4 @@ Thumbs.db
 tmp/**
 node_modules/
 assets/bower
+dist
