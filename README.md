@@ -12,9 +12,8 @@ By default, Zepto provides a build tool, based on Node.js and Coffeescript. So, 
 ##Getting started
 After cloning (or downloading) the repo you must run <code>npm install</code> to fetch all dependencies, when this is done all Bower packages will automatically be downloaded and a browser build of Uglify will be created. Needless to say, for this to work you will need to have Node.js and Bower installed on your machine.
 
-##Grunt task
-Grunt is used to create a distribution build. By running the default Grunt task it will optimize all resources and store them in the <code>dist</code> folder.
-The files located in this folder are prepared to be uploaded / deployed as is.
+##Gulp task
+Gulp is used to create a distribution build. By running the default Gulp task it will optimize all resources and store them in the <code>dist</code> folder. The files located in this folder are prepared to be uploaded / deployed as is.
 
 ##Under the hood
 So, how does this tool actually work? Well, altough Zepto offers a CLI-based build tool I have decided to make it client-side only, based on <a href="https://github.com/gfranko/DownloadBuilder.js">DownloadBuilder</a>. The process from selecting the modules to actually generating the build (and minify it) is:
@@ -42,4 +41,4 @@ Tested in the latest (stable) versions of Google Chrome, Mozilla Firefox, Opera 
 </ul>
 
 ##License
-Copyright (C) 2013 e-sites, <a href="http://www.e-sites.nl/">http://e-sites.nl/</a> Licensed under the MIT license.
+Copyright (C) 2015 e-sites, <a href="http://www.e-sites.nl/">http://e-sites.nl/</a> Licensed under the MIT license.
