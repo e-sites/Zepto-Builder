@@ -3,7 +3,7 @@
  *  Zepto Builder will let you generate a custom version of Zepto that just includes the modules you need
  *
  *  @author  : Boye Oomens <github@e-sites.nl>
- *  @version : 0.7.0
+ *  @version : 0.7.1
  *  @license : MIT
  *  @see     : http://github.e-sites.nl/zeptobuilder/
  */
@@ -405,7 +405,6 @@
 			 * Initializes module overview
 			 */
 			init: function () {
-				this.load();
 				this.loadMetaData();
 				this.observe();
 			},
@@ -433,6 +432,7 @@
 
 				if ( ZB.cache.get(cacheKey) ) {
 					ZB.metaData = JSON.parse(ZB.cache.get(cacheKey));
+					ZB.modules.load();
 					return;
 				}
 
@@ -440,6 +440,7 @@
 					ZB.modules.length = Object.keys(response).length;
 					ZB.cache.set(cacheKey, response);
 					ZB.metaData = response;
+					ZB.modules.load();
 				});
 			},
 
