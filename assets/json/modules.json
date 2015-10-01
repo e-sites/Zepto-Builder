@@ -1,10 +1,10 @@
 {
 	"zepto.js": {
-		"description": "Core module; contains most methods",
+		"description": "Core module; contains most methods (mandatory)",
 		"default": true
 	},
 	"event.js": {
-		"description": "Event handling via on() & off()",
+		"description": "Event handling via <code>on()</code> & <code>off()</code>",
 		"default": true
 	},
 	"ajax.js": {
@@ -20,11 +20,11 @@
 		"default": true
 	},
 	"detect.js": {
-		"description": "Provides $.os and $.browser information",
+		"description": "Provides <code>$.os</code> and <code>$.browser</code> information",
 		"default": false
 	},
 	"fx.js": {
-		"description": "The animate() method",
+		"description": "The <code>animate()</code> method",
 		"default": false
 	},
 	"fx_methods.js": {
@@ -36,20 +36,20 @@
 		"default": false
 	},
 	"data.js": {
-		"description": "A full-blown data() method, capable of storing arbitrary objects in memory.",
+		"description": "A full-blown <code>data()</code> method, capable of storing arbitrary objects in memory.",
 		"default": false
 	},
 	"deferred.js": {
-		"description": "Provides $.Deferred promises API. Depends on the \"callbacks\" module. $.ajax() supports a promise interface for chaining callbacks.",
+		"description": "Provides <code>$.Deferred</code> promises API. Depends on the \"callbacks\" module. <code>$.ajax()</code> supports a promise interface for chaining callbacks.",
 		"default": false,
 		"depends": "callbacks.js"
 	},
 	"callbacks.js": {
-		"description": "Provides $.Callbacks for use in \"deferred\" module.",
+		"description": "Provides <code>$.Callbacks</code> for use in \"deferred\" module.",
 		"default": false
 	},
 	"selector.js": {
-		"description": "Experimental jQuery CSS extensions support for functionality such as $('div:first') and el.is(':visible').",
+		"description": "Experimental jQuery CSS extensions support for functionality such as <code>$('div:first')</code> and <code>el.is(':visible')</code>.",
 		"default": false
 	},
 	"touch.js": {
@@ -65,7 +65,11 @@
 		"default": false
 	},
 	"ios3.js": {
-		"description": "String.prototype.trim and Array.prototype.reduce methods (if they are missing) for compatibility with iOS 3.x.",
+		"description": "<code>String.prototype.trim</code> and <code>Array.prototype.reduce</code> methods (if they are missing) for compatibility with iOS 3.x.",
+		"default": false
+	},
+	"polyfill.js": {
+		"description": "<code>String.prototype.trim</code> and <code>Array.prototype.reduce</code> methods (if they are missing) for compatibility with iOS 3.x.",
 		"default": false
 	}
-}	 
+}

@@ -1,33 +1,28 @@
 {
   "name": "ZeptoBuilder",
   "description": "Zepto Builder will let you generate a custom version of Zepto that just includes the modules you need.",
-  "version": "0.7.1",
+  "version": "1.0.0-beta",
   "homepage": "http://github.e-sites.nl/ZeptoBuilder",
   "repository": {
     "type": "git",
     "url": "https://github.com/e-sites/ZeptoBuilder.git"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/e-sites/ZeptoBuilder/LICENSE"
-    }
-  ],
+  "license": "MIT",
   "author": {
-    "name": "e-sites",
-    "email": "boye@e-sites.nl",
+    "name": "E-sites",
+    "email": "github@e-sites.nl",
     "web": "http://e-sites.nl/"
   },
   "devDependencies": {
-    "del": "^1.1.0",
+    "del": "^2.0.2",
     "gulp": "^3.8.10",
     "gulp-filter": "^1.0.2",
-    "gulp-htmlmin": "^1.0.0",
+    "gulp-html-minifier": "^0.1.6",
     "gulp-minify-css": "^0.3.0",
+    "gulp-minify-inline": "^0.1.1",
     "gulp-rev": "^2.0.1",
     "gulp-rev-replace": "^0.3.1",
     "gulp-uglify": "^1.0.2",
-    "gulp-uncss": "^1.0.0",
     "gulp-useref": "^1.0.2",
     "run-sequence": "^1.0.2"
   },

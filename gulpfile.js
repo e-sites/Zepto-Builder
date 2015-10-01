@@ -5,26 +5,29 @@ var filter = require('gulp-filter');
 var uglify = require('gulp-uglify');
 var rev = require('gulp-rev');
 var revReplace = require('gulp-rev-replace');
-var uncss = require('gulp-uncss');
 var useref = require('gulp-useref');
 var del = require('del');
 var runSequence = require('run-sequence');
+var dest = './dist';
 
-gulp.task('build', function() {
-	var jsFilter = filter("**/*.js");
-	var cssFilter = filter("**/*.css");
+gulp.task('clean', function () {
+	return del([dest]);
+});
+
+gulp.task('copy', function () {
+	return gulp.src([
+			'assets/img/**/*',
+			'assets/js/uglify.min.js',
+			'assets/js/worker.js',
+			'assets/json/modules.json'
+		], {base: '.'})
+		.pipe(gulp.dest(dest));
+});
+
+gulp.task('build', function () {
+	var jsFilter = filter('**/*.js');
+	var cssFilter = filter('**/*.css');
 	var assets = useref.assets();
-	var dest = 'dist/';
-
-	// Do some housekeeping first
-	del([
-		dest + '/*'
-	]);
-
-	// Copy json file with meta data
-	gulp
-		.src('./assets/json/modules.json')
-		.pipe(gulp.dest('./dist/assets/json/'));
 
 	return gulp.src('./index.html')
 		.pipe(assets)
@@ -40,19 +43,6 @@ gulp.task('build', function() {
 		}))
 		.pipe(jsFilter.restore())
 		.pipe(cssFilter)
-		.pipe(uncss({
-			html: ['./index.html'],
-			ignore: [
-				'.text-hide',
-				'.gh',
-				'.saved',
-				'.topcoat-list__item.selected td',
-				'.move-from-top .modal.active',
-				'.move-from-top .overlay',
-				'.move-from-top .saved',
-				'input[type="checkbox"]:disabled + .topcoat-checkbox__checkmark'
-			]
-		}))
 		.pipe(minifyCss({
 			keepSpecialComments: 0
 		}))
@@ -79,10 +69,6 @@ gulp.task('htmlmin', function() {
 		.pipe(gulp.dest('dist'));
 });
 
-gulp.task('uncss', function() {
-	return gulp.src('./dist/**/*.css');
-});
-
-gulp.task('default', ['build'], function() {
-	runSequence('htmlmin', 'uncss');
+gulp.task('default', ['clean'], function () {
+	runSequence('copy', 'build', 'htmlmin');
 });

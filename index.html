@@ -3,90 +3,172 @@
 	<head>
 		<meta charset="utf-8">
 		<link rel="dns-prefetch" href="//www.google-analytics.com">
-		<title>Zepto Builder - Generate a custom version of Zepto that just includes the modules you need</title>
+		<link rel="dns-prefetch" href="https://fonts.googleapis.com">
+		<title>Zepto Builder 1.0.0-beta - Generate a custom version of Zepto that just includes the modules you need</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="description" content="Zepto Builder will let you generate a custom version of Zepto that just includes the modules you need.">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="icon" type="image/png" href="assets/img/favicon-32x32.png" sizes="32x32">
+		<link rel="icon" type="image/png" href="assets/img/favicon-194x194.png" sizes="194x194">
+		<link rel="icon" type="image/png" href="assets/img/favicon-96x96.png" sizes="96x96">
+		<link rel="icon" type="image/png" href="assets/img/favicon-16x16.png" sizes="16x16">
+		<link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic&amp;lang=en" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<!-- build:css assets/css/styles.min.css -->
-		<link rel="stylesheet" href="assets/bower/topcoat/css/topcoat-mobile-light.css">
+		<link rel="stylesheet" href="assets/bower/material-design-lite/material.css">
 		<link rel="stylesheet" href="assets/css/styles.css">
 		<!-- endbuild -->
-		<script>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-18924418-8'],['_setDomainName', '.e-sites.nl'],['_trackPageview'],['_trackPageLoadTime']);(function(b,c){var a=b.createElement(c),d=b.getElementsByTagName(c)[0];a.async=a.src='//www.google-analytics.com/ga.js';d.parentNode.insertBefore(a,d)})(document,'script');</script>
+		<script>
+			(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+			ga('create', 'UA-18924418-8', 'auto');
+			ga('send', 'pageview');
+		</script>
 	</head>
-	<body>
-		<header class="topcoat-navigation-bar" role="banner">
-			<div class="topcoat-navigation-bar__item center full">
-				<h1 class="topcoat-navigation-bar__title">Zepto Builder</h1>
-				<span class="topcoat-navigation-bar__payoff">The web based equivalent of Zepto's <code>./make dist</code></span>
-			</div>
-		</header>
-		<p>
-			Select the modules you would like to include in your own custom build.
-		</p>
-		<form id="builder" method="POST" role="form">
-			<div class="topcoat-list">
-				<h2 class="topcoat-list__header"><a href="http://zeptojs.com/" target="_blank">Zepto <span id="v"></span></a></h2>
-				<div class="fixed-table-container">
-					<div class="topcoat-list__container">
-						<table>
-							<caption class="text-hide">Overview of all available Zepto modules</caption>
-							<thead>
-								<tr>
-									<th></th>
-									<th><div class="th-inner">Module</div></th>
-									<th><div class="th-inner">File size</div></th>
-									<th><div class="th-inner">URL</div></th>
-								</tr>
-							</thead>
-							<tbody id="modules">
-								<tr class="topcoat-list__item"><td colspan="4" class="text-center"><em>Fetching modules from GitHub...</em></td></tr>
-							</tbody>
-						</table>
+	<body role="application" class="zb-app">
+		<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+			<div class="zb-header mdl-layout__header">
+				<div>
+					<div class="mdl-grid">
+						<div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
+							<span class="zb-logo mdl-layout-title">
+								<img src="assets/img/logo-zb.svg" alt="Zepto Builder" width="253" height="40">
+							</span>
+						</div>
+						<div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-tablet mdl-cell--2-col-phone text-right">
+							<a class="mdl-button mdl-js-button mdl-js-ripple-effect" href="http://zeptojs.com/" target="_blank">
+								<i class="material-icons">open_in_new</i>
+								Zepto <span id="v"></span>
+							</a>
+							<button class="mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect" id="more-button">
+								<i class="material-icons">more_vert</i>
+							</button>
+							<ul class="mdl-menu mdl-js-menu mdl-menu--bottom-right mdl-js-ripple-effect" for="more-button">
+								<li class="mdl-menu__item" data-modal="about"><i class="material-icons">person</i> About</li>
+								<li class="mdl-menu__item" data-modal="shortcuts"><i class="material-icons">keyboard</i> Shortcuts</li>
+								<li class="mdl-menu__item" data-href="mailto:github@e-sites.nl"><i class="material-icons">email</i> Contact</li>
+							</ul>
+						</div>
 					</div>
 				</div>
 			</div>
-			<button type="submit" class="topcoat-button--cta" id="btn-generate">Generate custom build <small id="total-size"></small></button>
-			<label class="topcoat-checkbox uglify-option">
-				<input type="checkbox" id="uglify">
-				<span class="topcoat-checkbox__checkmark"></span>
-				Uglify?
-				<span class="spinner" id="spin"></span>
-			</label>
-			<script id="module-tpl" type="text/x-yolo-template"><tr class="topcoat-list__item {{selected}} {{disabled}}"><td><label class="topcoat-checkbox"><input type="checkbox" name="modules[]" {{disabled}} {{checked}} value="{{path}}" class="checkbox"><div class="topcoat-checkbox__checkmark"></div></label></td><td>{{name}}<span class="hide">{{description}}</span></td><td data-bytes="{{bytes}}" class="size">{{size}}</td><td><a title="View source on GitHub" href="{{html_url}}" target="_blank" class="gh text-hide" tabindex="-1"></a></td></tr></script>
-		</form>
-		<footer role="contentinfo">
-			A thing made by <a href="https://twitter.com/_boye">Boye</a> at <a href="http://e-sites.nl/">E-sites HQ</a> and open-sourced at <a href="https://github.com/e-sites/Zepto-Builder">GitHub</a>.
+			<main class="mdl-layout__content zb-scroller">
+				<form class="zb-form" id="builder" method="POST">
+					<div id="modules" class="mdl-grid"></div>
+				</form>
+			</main>
+			<script id="loading-tpl" type="text/template">
+				<div class="mdl-cell mdl-cell--12-col text-center">
+					<div class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
+					<p>Fetching Zepto {{v}} modules from GitHub...</p>
+				</div>
+			</script>
+			<script id="module-tpl" type="text/template">
+				<div class="zb-module-item mdl-cell mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp {{selected}} {{disabled}}">
+					<div class="mdl-card__title">
+						<h4 class="mdl-card__title-text">{{name}}</h4>
+					</div>
+					<div class="mdl-card__supporting-text mdl-card--expand">
+					    {{description}}
+					</div>
+					<div class="mdl-card__actions mdl-card--border">
+						<a title="View source on GitHub" href="{{html_url}}" target="_blank" class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect">
+							<i class="gh text-hide">github</i>
+						</a>
+						<span data-bytes="{{bytes}}" class="size">{{size}}</span>
+					</div>
+					<div class="mdl-card__menu">
+						<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
+		  					<input type="checkbox" name="modules[]" value="{{path}}" class="mdl-checkbox__input zb-checkbox" {{disabled}} {{checked}}>
+						</label>
+					</div>
+				</div>
+			</script>
+			<div class="zb-footer zb-footer-top mdl-mini-footer zb-descr">
+				<p class="zb-footer-label text-center hide">Select the modules you would like to include in your own custom build.</p>
+				<div class="mdl-mini-footer--right-section">
+					<div id="spinner" class="mdl-spinner mdl-spinner--single-color mdl-js-spinner zb-spinner"></div>
+					<label for="uglify" class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
+						<input type="checkbox" id="uglify" class="mdl-checkbox__input" />
+						<span class="mdl-checkbox__label">Uglify?</span>
+					</label>
+					<button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect zb-btn-generate" id="btn-generate">
+						<i class="material-icons">autorenew</i> Generate custom build <small id="total-size"></small>
+					</button>
+				</div>
+			</div>
+			<footer class="zb-footer mdl-mini-footer">
+				<div class="mdl-mini-footer--left-section" role="contentinfo">
+					<p>
+						A thing made by <a href="https://twitter.com/_boye">Boye</a> at <a href="http://e-sites.nl/">E-sites HQ</a> and open-sourced at <a href="https://github.com/e-sites/Zepto-Builder">GitHub</a>.
+						A special shout out to <a href="http://mir.aculo.us/" target="_blank">Thomas Fuchs</a>, of Zepto fame.
+					</p>
+				</div>
+				<div class="mdl-mini-footer--right-section text-right">
+					<iframe src="http://ghbtns.com/github-btn.html?user=e-sites&amp;repo=Zepto-Builder&amp;type=watch&amp;count=true" width="110" height="20"></iframe>
+				</div>
+			</footer>
+		</div>
+		<div aria-hidden="true" role="dialog" class="zb-modal" id="output">
+			<h4>Custom Zepto build</h4>
 			<p>
-				<small>A special shout out to Thomas Fuchs, of Zepto fame.</small>
+				Press ESC (or click on the overlay) to close the dialog.
 			</p>
-			<iframe src="http://ghbtns.com/github-btn.html?user=e-sites&amp;repo=Zepto-Builder&amp;type=watch&amp;count=true" width="110" height="20"></iframe>
-		</footer>
-		<span role="tooltip" class="tooltip hide"></span>
-		<div aria-hidden="true" role="dialog" class="modal" id="output">
-			<h2>Custom Zepto build</h2>
-			<p>
-				<small>press ESC (or click on the overlay) to close the dialog</small>
-			</p>
-			<textarea class="topcoat-textarea" rows="6" cols="36" id="source"></textarea>
-			<small id="saved" class="saved"></small>
+			<div class="mdl-textfield mdl-js-textfield">
+				<textarea class="mdl-textfield__input" rows="6" cols="36" id="source"></textarea>
+			</div>
 			<p>
 				Press <span id="copy-sign"></span>-C to copy<span id="save-option" class="hide">, or:</span>
 			</p>
-			<a download="zepto.js" class="topcoat-button--cta hide" id="btn-save">Save to disk</a>
+			<a download="zepto.js" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect hide" id="btn-save">
+				<i class="material-icons">file_download</i> Save to disk
+			</a>
+			<small id="saved" class="saved"></small>
 		</div>
-		<div aria-hidden="true" role="dialog" class="modal" id="preset">
-			<h2>Load Zepto preset</h2>
-			<p>Paste the header comment from old Zepto projects below to load the corresponding preset.</p>
-			<textarea class="topcoat-textarea" rows="6" cols="36" id="comment" placeholder="e.g. /* Zepto 1.0rc1 - polyfill zepto event detect fx ajax form fx_methods - zeptojs.com/license */"></textarea>
+		<div aria-hidden="true" role="dialog" class="zb-modal" id="preset">
+			<h4>Load Zepto preset</h4>
+			<p>Paste the header comment from old Zepto projects below to load the corresponding preset based on the most recent version.</p>
+			<div class="mdl-textfield mdl-js-textfield">
+				<textarea class="mdl-textfield__input" rows="6" cols="36" id="comment" placeholder="e.g. /* Zepto 1.0rc1 - polyfill zepto event detect fx ajax form fx_methods - zeptojs.com/license */"></textarea>
+			</div>
 		</div>
-		<div class="overlay"></div>
-		<!--[if lte IE 9]><script src="//code.jquery.com/jquery-1.11.2.min.js"></script><![endif]-->
-		<!-- build:js assets/js/build.min.js-->
+		<div aria-hidden="true" role="dialog" class="zb-modal" id="about">
+			<h4>About</h4>
+			<p>E-sites is a digital agency with offices in Breda and Eindhoven, The Netherlands, on Curaçao and in Suriname. We create websites, (mobile) apps and online campaigns that are extraordinarily innovative and effective, for companies and organizations with high ambitions.</p>
+			<p>Besides knowledge we also like to share code. Because, sharing is caring. Check out our <a href="https://github.com/e-sites" target="_blank">GitHub page</a> to see if there is anything you can use in your web or mobile projects.</p>
+			<div class="fb-page" data-href="https://www.facebook.com/esitesbreda" data-small-header="false" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="true" data-show-posts="false"><div class="fb-xfbml-parse-ignore"><div class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div></div></div>
+			<div id="fb-root"></div>
+		</div>
+		<div aria-hidden="true" role="dialog" class="zb-modal" id="shortcuts">
+			<h4>Shortcuts</h4>
+			<table class="mdl-data-table zb-shortcuts">
+				<thead>
+					<tr>
+						<th>Shortcut</th>
+						<th>Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>⌘ (or Ctrl) + A</td>
+						<td>Select (or deselect) all modules</td>
+					</tr>
+					<tr>
+						<td>P</td>
+						<td>Triggers dialog where you can paste the header comment from old Zepto projects below to load the corresponding preset based on the most recent version</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="zb-backdrop"></div>
+		<!-- build:js assets/js/build.min.js defer -->
+		<script src="assets/bower/material-design-lite/material.js"></script>
 		<script src="assets/js/zepto.js"></script>
 		<script src="assets/bower/base64/base64.js"></script>
 		<script src="assets/js/DownloadBuilder.js"></script>
-		<script src="assets/js/uglify.min.js"></script>
 		<script src="assets/bower/keymaster/keymaster.js"></script>
-		<script src="assets/bower/spin.js/spin.js"></script>
 		<script src="assets/js/ZeptoBuilder.js"></script>
 		<!-- endbuild -->
 	</body>

@@ -1,30 +1,29 @@
-/*
+/**
  *  Zepto Builder
  *  Zepto Builder will let you generate a custom version of Zepto that just includes the modules you need
  *
  *  @author  : Boye Oomens <github@e-sites.nl>
- *  @version : 0.7.1
+ *  @version : 1.0.0-beta
  *  @license : MIT
  *  @see     : http://github.e-sites.nl/zeptobuilder/
  */
 
-(function () {
-	/*global jQuery, Zepto, Spinner, UglifyJS, DownloadBuilder, key */
+(function ($) {
+	/*global Zepto, DownloadBuilder, key */
 
 	'use strict';
 
 	// Cached DOM elements
-	var $ = (window.jQuery ? jQuery : Zepto),
-		$body = $('body'),
+	var $body = $('body'),
 		$source = $('#source'),
 		$modules = $('#modules'),
 		$comment = $('#comment'),
-		$modals = $('.modal'),
+		$modals = $('.zb-modal'),
 		$saved = $('#saved'),
 		$generateBtn = $('#btn-generate'),
 		$saveBtn = $('#btn-save'),
-		$spin = $('#spin'),
 		$uglify = $('#uglify'),
+		$spinner = $('#spinner'),
 
 		// Feature detect + local reference
 		// Courtesy of Mathias Bynens
@@ -43,22 +42,7 @@
 			} catch(e) {}
 		}()),
 
-		// Loading indicator
-		spinner = new Spinner({
-			lines: 15,
-			length: 3,
-			width: 2,
-			radius: 9,
-			corners: 1,
-			rotate: 0,
-			direction: 1,
-			color: '#4CA1E4',
-			trail: 60,
-			shadow: false,
-			hwaccel: true,
-			top: '15px',
-			left: '120px'
-		}),
+		topComment = '/*! Zepto %i (generated with Zepto Builder) - %s - zeptojs.com/license */\n',
 
 		// Some static stuff
 		/*jshint camelcase:false */
@@ -75,7 +59,6 @@
 		MODULE_METADATA_PATH = 'assets/json/modules.json',
 		API_URL = 'https://api.github.com',
 		REPO_PATH = '/repos/madrobby/zepto/contents',
-		TOP_COMMENT = '// Zepto %i (generated with Zepto Builder) - %s - zeptojs.com/license \n',
 		SRC_PATH = '/src',
 		AUTH_QRYSTR = (CONFIG.client_id ? '?client_id=' + CONFIG.client_id + '&client_secret=' + CONFIG.client_secret : '');
 
@@ -99,6 +82,45 @@
 	}
 
 	/**
+	 * Small template 'engine' function
+	 * http://mir.aculo.us/2011/03/09/little-helpers-a-tweet-sized-javascript-templating-engine/
+	 *
+	 * @author Thomas Fuchs
+	 * @param {string} s
+	 * @param {object} d
+	 * @return {string} compiled template
+	 * @private
+	 */
+	function _template(s, d) {
+		for (var p in d) {
+			s = s.replace(new RegExp('{{' + p + '}}', 'g'), d[p]);
+		}
+		return s;
+	}
+
+	/**
+	 * Injects FB' JavaScript SDK
+	 *
+	 * @param  {Object} d
+	 * @param  {String} s
+	 * @param  {String} id
+	 * @private
+	 */
+	function _loadFBSdk(d,s,id) {
+		var js,
+			fjs = d.getElementsByTagName(s)[0];
+
+		if ( d.getElementById(id) ) {
+			return;
+		}
+
+		js = d.createElement(s);
+		js.id = id;
+		js.src = '//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.4&appId=225350897592962';
+		fjs.parentNode.insertBefore(js, fjs);
+	}
+
+	/**
 	 * Namespace that encapsulates all ZB related logic
 	 *
 	 * @type {Object}
@@ -106,65 +128,11 @@
 	var ZB = {
 
 		/**
-		 * Minify wrapper that leverages Uglify
-		 * Based on https://gist.github.com/jpillora/5652641
-		 *
-		 * @param  {String} codes
-		 * @param  {Object} options
-		 * @return {String} minified output
-		 * @private
-		 */
-		_minify: function (codes, options) {
-			/*jshint camelcase:false */
-
-			var toplevel = null,
-				compress, sq, stream;
-
-			options = UglifyJS.defaults(options || {}, {
-				warnings: false,
-				mangle: {},
-				compress: {}
-			});
-
-			if ( typeof codes === 'string' ) {
-				codes = [codes];
-			}
-
-			$.each(codes, function (index, code) {
-				toplevel = UglifyJS.parse(code, {
-					filename: '?',
-					toplevel: toplevel
-				});
-			});
-
-			if ( options.compress ) {
-				compress = {
-					warnings: options.warnings
-				};
-				UglifyJS.merge(compress, options.compress);
-				toplevel.figure_out_scope();
-				sq = UglifyJS.Compressor(compress);
-				toplevel = toplevel.transform(sq);
-			}
-
-			if ( options.mangle ) {
-				toplevel.figure_out_scope();
-				toplevel.compute_char_frequency();
-				toplevel.mangle_names(options.mangle);
-			}
-
-			stream = UglifyJS.OutputStream();
-			toplevel.print(stream);
-
-			return stream.toString();
-		},
-
-		/**
-		 * Zepto version number
+		 * Newest Zepto version number
 		 *
 		 * @type {String}
 		 */
-		zeptoVersion: null,
+		currentVersion: null,
 
 		/**
 		 * Total file size of the custom build
@@ -180,7 +148,7 @@
 		 */
 		init: function () {
 			this.builder = new DownloadBuilder(CONFIG);
-			this.showVersion();
+			this.getVersion();
 			this.modules.init();
 			this.modal.init();
 
@@ -194,23 +162,28 @@
 		},
 
 		/**
-		 * Fetches the current Zepto version, either from GitHub or from sessionStorage,
-		 * and updates the corresponding DOM element
+		 * Fetches the current Zepto version, either from GitHub or from sessionStorage
 		 */
-		showVersion: function () {
-			var cacheKey = 'zb-zepto-version';
+		getVersion: function () {
+			var versionKey = ZB.cache.keys.version;
 
-			if ( this.cache.get(cacheKey) ) {
-				this.zeptoVersion = this.cache.get(cacheKey);
-				return $('#v').text(this.zeptoVersion);
+			if ( this.cache.get(versionKey) ) {
+				this.currentVersion = this.cache.get(versionKey);
+				return this.displayVersion();
 			}
 
 			this.builder.JSONP(API_URL + REPO_PATH + '/package.json' + AUTH_QRYSTR, function (data) {
-				ZB.zeptoVersion = JSON.parse(ZB.builder._parseGithubResponse({'data': data})).version;
-				ZB.cache.set(cacheKey, ZB.zeptoVersion);
-
-				$('#v').text(ZB.zeptoVersion);
+				ZB.currentVersion = JSON.parse(ZB.builder._parseGithubResponse({'data': data})).version;
+				ZB.cache.set(versionKey, ZB.currentVersion);
+				ZB.displayVersion();
 			});
+		},
+
+		/**
+		 * Displays the current Zepto version
+		 */
+		displayVersion: function () {
+			$('#v').text(ZB.currentVersion);
 		},
 
 		/**
@@ -233,7 +206,7 @@
 		updateFileSize: function (fs) {
 			if ( !fs ) {
 				fs = 0;
-				$modules.find('tr.selected').find('.size').each(function () {
+				$modules.find('.is-selected').find('.size').each(function () {
 					fs += $(this).data('bytes');
 				});
 			}
@@ -251,18 +224,23 @@
 		 * @param {String} label
 		 * @see https://developers.google.com/analytics/devguides/collection/gajs/eventTrackerGuide
 		 */
-		trackEvent: function (category, action, label) {
-			/* global _gaq */
+		trackEvent: function (category, action, label, value) {
+			/* global ga */
 
-			if ( typeof _gaq !== 'object' ) {
+			if ( typeof ga !== 'function' ) {
 				return;
 			}
 
-			if ( label ) {
-				_gaq.push(['_trackEvent', category, action, label]);
-			} else {
-				_gaq.push(['_trackEvent', category, action]);
-			}
+			ga('send', 'event', category, action, label, value);
+		},
+
+		/**
+		 * Returns top comment including version and selected modules
+		 *
+		 * @return {String}
+		 */
+		getTopComment: function () {
+			return topComment.replace('%i', ZB.currentVersion).replace('%s', ZB.modules.selection.join(' '));
 		},
 
 		/**
@@ -273,6 +251,18 @@
 		cache: {
 
 			/**
+			 * Map with keys that are used as cache identifiers
+			 *
+			 * @type {Object}
+			 */
+			keys: {
+				version: 'zb-current-version',
+				metadata: 'zb-modules-metadata',
+				modules: 'zb-modules',
+				selection: 'zb-selection'
+			},
+
+			/**
 			 * Write to cache (and format objects if necessary)
 			 *
 			 * @param {String}        key
@@ -280,10 +270,21 @@
 			 */
 			set: function (key, value) {
 				if ( sessionStorage ) {
-					if ( $.isPlainObject(value) ) {
+					if ( $.isPlainObject(value) || $.isArray(value) ) {
 						value = JSON.stringify(value);
 					}
 					sessionStorage.setItem(key, value);
+				}
+			},
+
+			/**
+			 * Removes an item from the cache
+			 *
+			 * @param {String} key
+			 */
+			remove: function (key) {
+				if ( sessionStorage && key ) {
+					sessionStorage.removeItem(key);
 				}
 			},
 
@@ -295,48 +296,6 @@
 			 */
 			get: function (key) {
 				return sessionStorage && sessionStorage.getItem(key);
-			}
-
-		},
-
-		/**
-		 * Simple tooltip functionality that shows the module description
-		 * when hovering the table rows
-		 *
-		 * @type {Object}
-		 */
-		tooltip: {
-
-			/**
-			 * Tooltip DOM element
-			 *
-			 * @type {Object}
-			 */
-			$el: $('.tooltip'),
-
-			/**
-			 * Simple helper to show the actual tooltip
-			 */
-			show: function (e) {
-				ZB.tooltip.$el.html($(this).find('.hide').text()).removeClass('hide');
-				ZB.tooltip.move(e);
-			},
-
-			/**
-			 * Makes sure that the tooltip is positioned based on mouse movement
-			 */
-			move: function (e) {
-				ZB.tooltip.$el.css({
-					'top': (e.pageY - 50 - (ZB.tooltip.$el.height()/2) ) + 'px',
-					'left': (e.pageX + 10) + 'px'
-				});
-			},
-
-			/**
-			 * Simple helper to, guess what, hide the actual tooltip!
-			 */
-			hide: function () {
-				ZB.tooltip.$el.addClass('hide');
 			}
 
 		},
@@ -364,19 +323,27 @@
 					.filter(selector)
 					.addClass('active');
 
-				$body.addClass('move-from-top');
+				$body.addClass('move-from-bottom');
+
+				if ( selector.indexOf('about') > -1 && !window.FB ) {
+					_loadFBSdk(document, 'script', 'facebook-jssdk');
+				}
 			},
 
 			/**
 			 * Hide modal dialog
 			 */
 			hide: function (cb) {
-				$body.removeClass('move-from-top');
+				$body.removeClass('move-from-bottom');
 				$modals.removeClass('active').off();
 
 				if ( cb && $.isFunction(cb) ) {
 					cb.apply(ZB, []);
 				}
+			},
+
+			load: function () {
+				ZB.modal.show('#' + $(this).data('modal'));
 			}
 
 		},
@@ -414,13 +381,14 @@
 			 */
 			observe: function () {
 				$(document)
-					.on('click', '.overlay', ZB.modal.hide)
-					.on('submit', '#builder', this.generate)
+					.on('click', '.zb-backdrop', ZB.modal.hide)
+					.on('click', '[data-modal]', ZB.modal.load)
+					.on('click', '[data-href]', function () {
+						document.location.href = $(this).data('href');
+					})
+					.on('click', '#btn-generate', this.generate)
 					.on('paste', '#comment', this.handlePreset)
-					.on('click', '.topcoat-list__item:not(.disabled)', this.select)
-					.on('mouseenter', '.topcoat-list__item', ZB.tooltip.show)
-					.on('mousemove', '.topcoat-list__item', ZB.tooltip.move)
-					.on('mouseleave', '.topcoat-list__item', ZB.tooltip.hide);
+					.on('click', '.zb-module-item:not(.disabled)', this.select);
 			},
 
 			/**
@@ -445,67 +413,146 @@
 			},
 
 			/**
+			 * Fetches the module contents, either from GitHub or from cache and injects it into the DOM
+			 */
+			load: function () {
+				var version = ZB.currentVersion,
+					cacheKey = ZB.cache.keys.modules;
+
+				$modules.html(_template($('#loading-tpl').html(), {v: version}));
+
+				if ( ZB.cache.get(cacheKey) ) {
+					return $modules.html( ZB.cache.get(cacheKey) ) && ZB.updateFileSize();
+				}
+
+				ZB.builder.JSONP(API_URL + REPO_PATH + SRC_PATH + AUTH_QRYSTR, function (response) {
+					var tpl = $('#module-tpl').html(),
+						fileSize = 0,
+						modules = '';
+
+					for (var m in response.data) {
+						if ( ZB.metaData.hasOwnProperty(response.data[m].name) ) {
+							response.data[m].description = ZB.metaData[response.data[m].name].description;
+							response.data[m].checked = (ZB.metaData[response.data[m].name].default ? 'checked' : '');
+							response.data[m].selected = (ZB.metaData[response.data[m].name].default ? 'is-selected' : '');
+							response.data[m].disabled = (response.data[m].name === 'zepto.js' ? 'disabled' : '');
+
+							ZB.metaData[response.data[m].name].size = response.data[m].size;
+						}
+						response.data[m].bytes = response.data[m].size;
+						response.data[m].size = _bytesToSize(response.data[m].size);
+
+						if ( response.data[m].selected ) {
+							fileSize += response.data[m].bytes;
+						}
+
+						modules += _template(tpl, response.data[m]);
+					}
+
+					$modules.html(modules);
+
+					ZB.updateFileSize(fileSize);
+					ZB.cache.set(cacheKey, modules);
+					ZB.cache.set(ZB.cache.keys.selection, ZB.modules.selection);
+				});
+			},
+
+			/**
 			 * Generates the actual Zepto build
 			 *
 			 * @param  {Object} e event object
 			 */
 			generate: function (e) {
-				var checkboxes = $('.checkbox:checked:not([disabled])').get();
+				var checkboxes = $('.zb-checkbox:checked:not([disabled])').get();
 
 				e.preventDefault();
 
-				checkboxes.unshift($('.checkbox[disabled]')[0]);
-				spinner.spin( $spin[0] );
+				// The core Zepto.js module needs to be processed first
+				checkboxes.unshift($('.zb-checkbox[disabled]')[0]);
 
+				$spinner.addClass('is-active');
 				$generateBtn.attr('disabled', 'disabled');
 
 				ZB.builder.buildURL(
 					$(checkboxes),
 					FILE_NAME,
 					'javascript',
-					function (data) {
-						var comment = TOP_COMMENT.replace('%i', ZB.zeptoVersion).replace('%s', ZB.modules.selection.join(' ')),
-							output = comment + data.content,
-							minified = comment,
-							percentage;
+					ZB.modules.processBuild
+				);
+			},
 
-						ZB.trackEvent(
-							'Zepto ' + ZB.zeptoVersion + ($uglify[0].checked ? ' (minified)' : ''),
-							'Generate',
-							'Modules: ' + ZB.modules.selection.join(', ')
-						);
+			/**
+			 * Kickstarts build process
+			 *
+			 * @param  {Object} data
+			 */
+			processBuild: function (data) {
+				var comment = ZB.getTopComment(),
+					output = comment + data.content,
+					worker;
 
-						$saved.empty();
+				ZB.trackEvent(
+					'Zepto ' + ZB.currentVersion + ($uglify[0].checked ? ' (minified)' : ''),
+					'Generate',
+					'Modules',
+					ZB.modules.selection.join(', ')
+				);
 
-						if ( $uglify[0].checked ) {
-							minified += ZB._minify(data.content);
-							percentage = ((1 - minified.length / output.length) * 100).toFixed(2);
+				$saved.empty();
 
-							$saved.text( _bytesToSize(ZB.totalFileSize - ((percentage / 100) * ZB.totalFileSize)) + ' (you saved: ' + percentage + '%)');
+				if ( $uglify[0].checked ) {
+					worker = ZB.modules.createWorker({code: data.content, output: output.length});
+					worker.addEventListener('message', ZB.modules.minify, false);
+				} else {
+					ZB.modules.handleOutput(FILE_NAME, data.url, output);
+				}
 
-							if ( ZB.builder.supportsFilesystem ) {
-								ZB.builder.createURL({
-									data: minified,
-									lang: 'javascript',
-									fileName: MIN_FILE_NAME,
-									callback: function (url) {
-										ZB.modules.handleOutput(MIN_FILE_NAME, url, minified);
-										minified = null;
-									}
-								});
-							} else {
-								ZB.modules.handleOutput(null, null, minified);
-								minified = null;
-							}
+				data = null;
+				output = null;
+			},
 
-							return;
+			/**
+			 * Creates new Worker instance and delivers the code that needs to be minified
+			 *
+			 * @param  {String} codes
+			 * @return {Worker}
+			 */
+			createWorker: function (codes) {
+				var worker = new Worker('assets/js/worker.js');
+
+				worker.postMessage(codes);
+
+				return worker;
+			},
+
+			/**
+			 * Processes the code that is minified by the Worker.
+			 *
+			 * @param {Object} e Worker event object
+			 */
+			minify: function (e) {
+				var minified = ZB.getTopComment(),
+					percentage;
+
+				minified += e.data.code;
+				percentage = ((1 - minified.length / e.data.output) * 100).toFixed(2);
+
+				$saved.text( _bytesToSize(ZB.totalFileSize - ((percentage / 100) * ZB.totalFileSize)) + ' (you saved: ' + percentage + '%)');
+
+				if ( ZB.builder.supportsFilesystem ) {
+					ZB.builder.createURL({
+						data: minified,
+						lang: 'javascript',
+						fileName: MIN_FILE_NAME,
+						callback: function (url) {
+							ZB.modules.handleOutput(MIN_FILE_NAME, url, minified);
+							minified = null;
 						}
-
-						ZB.modules.handleOutput(FILE_NAME, data.url, output);
-
-						data = null;
-						output = null;
 					});
+				} else {
+					ZB.modules.handleOutput(null, null, minified);
+					minified = null;
+				}
 			},
 
 			/**
@@ -519,14 +566,15 @@
 						$.each($.trim(this.value.split('-')[1]).split(' '), function () {
 							$modules
 								.find('input[value="src/' + this + '.js"]')
-								.parents('tr')
+								.parents('.zb-module-item')
 								.trigger('click');
 						});
 
 						ZB.trackEvent(
-							'Zepto ' + ZB.zeptoVersion,
+							'Zepto ' + ZB.currentVersion,
 							'Preset',
-							'Modules: ' + ZB.modules.selection.join(', ')
+							'Modules: ',
+							'unknown'
 						);
 
 						ZB.modal.hide(function () {
@@ -545,80 +593,25 @@
 			 */
 			handleOutput: function (fileName, url, output) {
 				if ( ZB.builder.supportsFilesystem ) {
+					$('#save-option').removeClass('hide');
+
 					$saveBtn
 						.attr({
 							'download': fileName,
 							'href': url
 						})
 						.on('click', ZB.modal.hide)
-						.css('display', 'inline-block');
+						.removeClass('hide');
 				}
 
 				ZB.modal.show('#output');
-				spinner.stop();
+				$spinner.removeClass('is-active');
 
 				$generateBtn.removeAttr('disabled');
 				$source.val(output).trigger('focus');
 				$source[0].select();
 
 				output = null;
-			},
-
-			/**
-			 * Fetches the module contents, either from GitHub or from cache and injects it into the DOM
-			 */
-			load: function() {
-				var cacheKey = 'zb-modules';
-
-				if ( ZB.cache.get(cacheKey) ) {
-					return $modules.html( ZB.cache.get(cacheKey) ) && ZB.updateFileSize();
-				}
-
-				ZB.builder.JSONP(API_URL + REPO_PATH + SRC_PATH + AUTH_QRYSTR, function (response) {
-					var tpl = $('#module-tpl').html(),
-						fileSize = 0,
-						modules = '';
-
-					for (var m in response.data) {
-						if ( ZB.metaData.hasOwnProperty(response.data[m].name) ) {
-							response.data[m].description = ZB.metaData[response.data[m].name].description;
-							response.data[m].checked = (ZB.metaData[response.data[m].name].default ? 'checked' : '');
-							response.data[m].selected = (ZB.metaData[response.data[m].name].default ? 'selected' : '');
-							response.data[m].disabled = (response.data[m].name === 'zepto.js' ? 'disabled' : '');
-
-							ZB.metaData[response.data[m].name].size = response.data[m].size;
-						}
-						response.data[m].bytes = response.data[m].size;
-						response.data[m].size = _bytesToSize(response.data[m].size);
-
-						if ( response.data[m].selected ) {
-							fileSize += response.data[m].bytes;
-						}
-
-						modules += ZB.modules.parse(tpl, response.data[m]);
-					}
-
-					$modules.html(modules);
-
-					ZB.updateFileSize(fileSize);
-					ZB.cache.set(cacheKey, modules);
-				});
-			},
-
-			/**
-			 * Small template 'engine' function
-			 * http://mir.aculo.us/2011/03/09/little-helpers-a-tweet-sized-javascript-templating-engine/
-			 *
-			 * @author Thomas Fuchs
-			 * @param {string} s
-			 * @param {object} d
-			 * @return {string} compiled template
-			 */
-			parse: function (s, d) {
-				for (var p in d) {
-					s = s.replace(new RegExp('{{' + p + '}}', 'g'), d[p]);
-				}
-				return s;
 			},
 
 			/**
@@ -629,15 +622,19 @@
 			 */
 			select: function (e) {
 				var $row = $(this),
-					$checkbox = $row.find('.checkbox'),
+					$label = $row.find('label'),
+					$checkbox = $row.find('.zb-checkbox'),
 					mod = $checkbox[0].value.replace(/src\/(.+).js/, '$1'),
 					fileSize;
 
-				$row.toggleClass('selected');
-
 				if ( e.target.nodeName !== 'INPUT' ) {
-					$checkbox.prop('checked', !$checkbox[0].checked);
+					e.preventDefault();
+					e.stopPropagation();
 				}
+
+				$checkbox.prop('checked', !$checkbox[0].checked);
+				$row.toggleClass('is-selected');
+				$label.toggleClass('is-checked', $checkbox[0].checked);
 
 				if ( !$checkbox[0].checked && $.inArray(mod, ZB.modules.selection) > -1 ) {
 					ZB.modules.selection.splice($.inArray(mod, ZB.modules.selection), 1);
@@ -647,6 +644,7 @@
 					fileSize = ZB.totalFileSize + $row.find('.size').data('bytes');
 				}
 
+				ZB.cache.set(ZB.cache.keys.selection, ZB.modules.selection);
 				ZB.updateFileSize( fileSize );
 			},
 
@@ -654,17 +652,17 @@
 			 * Resets current selection, except for the core module
 			 */
 			resetSelection: function () {
-				$modules.find('.checkbox').filter(':checked').parents('tr').trigger('click');
+				$modules.find('.zb-checkbox').filter(':checked').parents('tr').trigger('click');
 			},
 
 			/**
 			 * Toggles all checkboxes at once
 			 */
 			toggleAll: function (e) {
-				var rows = 'tr:not(.selected)';
+				var rows = '.zb-module-item:not(.is-selected)';
 
-				if ( $modules.find('.checkbox').length === ZB.modules.selection.length ) {
-					rows = 'tr';
+				if ( $modules.find('.zb-checkbox').length === ZB.modules.selection.length ) {
+					rows = '.zb-module-item';
 				}
 
 				$modules.find(rows).each(function () {
@@ -676,5 +674,9 @@
 		}
 	};
 
-	return ZB.init();
-}());
+	/**
+	 * Kickstart Zepto Builder
+	 */
+	ZB.init();
+
+}(Zepto));

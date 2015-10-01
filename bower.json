@@ -1,9 +1,9 @@
 {
   "name": "ZeptoBuilder",
-  "devDependencies": {
-    "base64": "~0.2.0",
-    "topcoat": "~0.8.0",
-    "keymaster": "~1.6.3",
-    "spin.js": "~2.0.2"
+  "version": "1.0.0-beta",
+  "dependencies": {
+    "material-design-lite": "~1.0.4",
+    "base64": "~0.3.0",
+    "keymaster": "~1.6.3"
   }
 }
